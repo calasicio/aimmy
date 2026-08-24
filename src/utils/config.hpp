@@ -4,8 +4,9 @@
 namespace Config
 {
   inline bool rcsEnabled = true;
-  inline float rcsStrengthX = 1.0f;
-  inline float rcsStrengthY = 1.0f;
+  inline bool rcsHumanizerEnabled = true;
+  inline int rcsSmoothness = 15;
+  inline int rcsJitter = 20;
 
   void LoadSettings(std::string_view filePath);
 }

@@ -19,6 +19,9 @@ int main()
   std::cout << "[Aimmy] >> INFO: Setting up core... \n\n";
 
   Config::LoadSettings("settings.json");
+  std::cout << "[Aimmy] >> INFO: Settings loaded.\n";
+  std::cout << "               | RCS Enabled: " << (Config::rcsEnabled ? "true" : "false") << "\n";
+  std::cout << "               | RCS Humanizer Enabled: " << (Config::rcsHumanizerEnabled ? "true" : "false") << "\n";
 
   if (!g_pProcess.AttachProcess("cs2.exe"))
   {
@@ -43,8 +46,7 @@ int main()
   std::cout << "--------------------------------------------------\n";
   std::cout << "                   HOW TO OPERATE                 \n";
   std::cout << "--------------------------------------------------\n";
-  std::cout << "[*] RECOIL CONTROL: Automatic math kicks in whenever spraying.\n";
-  std::cout << "[*] TRIGGERBOT: Hold [MOUSE 5 / XBUTTON2] key to look for targets.\n";
+  std::cout << "[*] RECOIL COMPENSATION SYSTEM: Automatic compensation of recoil patterns.\n";
   std::cout << "[*] EXIT SYSTEM: Press the physical [END] keyboard key to close.\n";
   std::cout << "--------------------------------------------------\n\n";
 

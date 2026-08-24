@@ -6,6 +6,10 @@
 #include "utils/config.hpp"
 #include <Windows.h>
 #include <iostream>
+#include <cmath>
+#include <random>
+
+/**** Vars ****/
 
 struct CUtlVector_t
 {
@@ -14,8 +18,14 @@ struct CUtlVector_t
 };
 
 Vector2 oldPunch{0.0f, 0.0f};
+Vector2 accumulatedSub{0.0f, 0.0f};
 
 float CORRECTION_FACTOR = 3.37f;
+
+std::random_device rd;
+std::mt19937 gen(rd());
+
+/**** Utils ****/
 
 float getSensitivity(uintptr_t clientBase)
 {
@@ -27,8 +37,19 @@ float getSensitivity(uintptr_t clientBase)
   }
 }
 
+Vector2 computeBezierPoint(Vector2 start, Vector2 control, Vector2 end, float t)
+{
+  float u = 1.0f - t;
+
+  return (start * (u * u)) + (control * (2.0f * u * t)) + (end * (t * t));
+}
+
+/**** Core Function ****/
+
 void features::ExecuteRCS(uintptr_t localPlayerPawn, uintptr_t clientBase)
 {
+  // ======== Sanity Checks ========
+
   if (!Config::rcsEnabled)
   {
     oldPunch = {0.0f, 0.0f};
@@ -53,6 +74,7 @@ void features::ExecuteRCS(uintptr_t localPlayerPawn, uintptr_t clientBase)
   if (shotsFired <= 1)
   {
     oldPunch = {0.0f, 0.0f};
+    accumulatedSub = {0.0f, 0.0f};
     return;
   }
 
@@ -71,6 +93,8 @@ void features::ExecuteRCS(uintptr_t localPlayerPawn, uintptr_t clientBase)
     return;
   }
 
+  // ======== Core Logic ========
+
   Vector3 aimPunch = g_pProcess.read<Vector3>(aimPunchCache.data + (aimPunchCache.count - 1) * sizeof(Vector3));
   Vector2 currentPunch{aimPunch.x, aimPunch.y};
 
@@ -78,12 +102,55 @@ void features::ExecuteRCS(uintptr_t localPlayerPawn, uintptr_t clientBase)
 
   float sensitivity = getSensitivity(clientBase);
 
-  int pixelMoveX = static_cast<int>((deltaPunch.y / sensitivity) / -0.022f);
-  int pixelMoveY = static_cast<int>((deltaPunch.x / sensitivity) / 0.022f);
+  Vector2 rawPixel = {
+      (deltaPunch.y / sensitivity) / -0.022f,
+      (deltaPunch.x / sensitivity) / 0.022f};
 
-  if (pixelMoveX != 0 || pixelMoveY != 0)
+  if (rawPixel.x != 0.0f && rawPixel.y != 0.0f)
   {
-    utils::MoveMouseRelative(pixelMoveX, pixelMoveY);
+    // --- Humanizer ---
+    Vector2 target = rawPixel;
+    if (Config::rcsHumanizerEnabled)
+    {
+      //>> Bezier Anchor Randomization
+
+      if (Config::rcsSmoothness > 0)
+      {
+        float maxCurveDist = (static_cast<float>(Config::rcsSmoothness) / 100.0f) * 5.0f;
+        std::uniform_real_distribution<float> controlDist(-maxCurveDist, maxCurveDist);
+
+        Vector2 startPt{0.0f, 0.0f};
+        Vector2 endPt{rawPixel.x, rawPixel.y};
+        Vector2 controlPt{(rawPixel.x / 2.0f) + controlDist(gen), (rawPixel.y / 2.0f) + controlDist(gen)};
+
+        target = computeBezierPoint(startPt, controlPt, endPt, 1.0f);
+      }
+
+      //>> Perlin biomid tremor jitter
+      if (Config::rcsJitter > 0 && shotsFired > 3)
+      {
+        float maxJitter = (static_cast<float>(Config::rcsJitter) / 100.0f) * 5.0f;
+        std::uniform_real_distribution<float> jitterDist(-maxJitter, maxJitter);
+        
+        target.x += jitterDist(gen);
+        target.y += jitterDist(gen);
+      }
+    }
+
+    target.x += accumulatedSub.x;
+    target.y += accumulatedSub.y;
+
+    // --- Mouse Movement ---
+    int dispatchX = static_cast<int>(target.x);
+    int dispatchY = static_cast<int>(target.y);
+
+    accumulatedSub.x = target.x - static_cast<float>(dispatchX);
+    accumulatedSub.y = target.y - static_cast<float>(dispatchY);
+
+    if (dispatchX != 0 || dispatchY != 0)
+    {
+      utils::MoveMouseRelative(dispatchX, dispatchY);
+    }
   }
 
   oldPunch = currentPunch;

@@ -39,11 +39,15 @@ void Config::LoadSettings(std::string_view filePath)
   if (!rcsEn.empty())
     rcsEnabled = (rcsEn == "true" || rcsEn == "1");
 
-  std::string rcsX = GetJsonValue(jsonStr, "\"rcs_strength_x\"");
-  if (!rcsX.empty())
-    rcsStrengthX = std::stof(rcsX);
+  std::string rcsHumanizerEn = GetJsonValue(jsonStr, "\"rcs_humanizer_enabled\"");
+  if (!rcsHumanizerEn.empty())
+    rcsHumanizerEnabled = (rcsHumanizerEn == "true" || rcsHumanizerEn == "1");
+  
+  std::string rcsSmooth = GetJsonValue(jsonStr, "\"rcs_smoothness\"");
+  if (!rcsSmooth.empty())
+    rcsSmoothness = std::stoi(rcsSmooth);
 
-  std::string rcsY = GetJsonValue(jsonStr, "\"rcs_strength_y\"");
-  if (!rcsY.empty())
-    rcsStrengthY = std::stof(rcsY);
+  std::string rcsJit = GetJsonValue(jsonStr, "\"rcs_jitter\"");
+  if (!rcsJit.empty())
+    rcsJitter = std::stoi(rcsJit);
 }
