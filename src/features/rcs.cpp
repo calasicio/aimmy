@@ -15,7 +15,7 @@ struct CUtlVector_t
 
 Vector2 oldPunch{0.0f, 0.0f};
 
-float CORRECTION_FACTOR = 3.4f;
+float CORRECTION_FACTOR = 3.37f;
 
 float getSensitivity(uintptr_t clientBase)
 {
