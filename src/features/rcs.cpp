@@ -112,16 +112,59 @@ void features::ExecuteRCS(uintptr_t localPlayerPawn, uintptr_t clientBase)
     Vector2 target = rawPixel;
     if (Config::rcsHumanizerEnabled)
     {
+      //>> Error things
+
+      if (Config::rcsPerfection < 100)
+      {
+        float perfection = static_cast<float>(Config::rcsPerfection);
+        if (perfection < 0.0f)
+          perfection = 0.0f;
+        if (perfection > 100.0f)
+          perfection = 100.0f;
+
+        float maxErrorScale = (100.0f - perfection) / 100.0f;
+
+        float minMultX = 0.0f, maxMultX = 0.0f;
+        float minMultY = 0.0f, maxMultY = 0.0f;
+
+        if (shotsFired < 9)
+        {
+          minMultX = 1.8f;
+          maxMultX = 0.15f;
+          minMultY = 1.95f;
+          maxMultY = 0.15f;
+        }
+        else
+        {
+          minMultX = 2.0f;
+          maxMultX = 0.1f;
+          minMultY = 2.0f;
+          maxMultY = 0.01f;
+        }
+
+        std::uniform_real_distribution<float> errorDistX(1.0f - (maxErrorScale * minMultX), 1.0f + (maxErrorScale * maxMultX));
+        std::uniform_real_distribution<float> errorDistY(1.0f - (maxErrorScale * minMultY), 1.0f + (maxErrorScale * maxMultY));
+
+        target.x *= errorDistX(gen);
+        target.y *= errorDistY(gen);
+
+        if (abs(target.x) > 4.0f)
+        {
+          std::uniform_real_distribution<float> catchUpDist(0.70f, 1.0f);
+          target.x *= (catchUpDist(gen) + (perfection / 100.0f * 0.30f));
+        }
+      }
+
       //>> Bezier Anchor Randomization
 
       if (Config::rcsSmoothness > 0)
       {
-        float maxCurveDist = (static_cast<float>(Config::rcsSmoothness) / 100.0f) * 5.0f;
+        float maxCurveDist = (static_cast<float>(Config::rcsSmoothness) / 100.0f) * 20.0f;
         std::uniform_real_distribution<float> controlDist(-maxCurveDist, maxCurveDist);
 
         Vector2 startPt{0.0f, 0.0f};
-        Vector2 endPt{rawPixel.x, rawPixel.y};
-        Vector2 controlPt{(rawPixel.x / 2.0f) + controlDist(gen), (rawPixel.y / 2.0f) + controlDist(gen)};
+        Vector2 endPt{target.x, target.y};
+        Vector2 controlPt{(target.x / 2.0f) + controlDist(gen), (target.y / 2.0f) + controlDist(gen)};
 
         target = computeBezierPoint(startPt, controlPt, endPt, 1.0f);
       }
@@ -131,7 +174,7 @@ void features::ExecuteRCS(uintptr_t localPlayerPawn, uintptr_t clientBase)
       {
         float maxJitter = (static_cast<float>(Config::rcsJitter) / 100.0f) * 5.0f;
         std::uniform_real_distribution<float> jitterDist(-maxJitter, maxJitter);
-        
+
         target.x += jitterDist(gen);
         target.y += jitterDist(gen);
       }

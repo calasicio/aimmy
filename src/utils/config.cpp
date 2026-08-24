@@ -42,6 +42,10 @@ void Config::LoadSettings(std::string_view filePath)
   std::string rcsHumanizerEn = GetJsonValue(jsonStr, "\"rcs_humanizer_enabled\"");
   if (!rcsHumanizerEn.empty())
     rcsHumanizerEnabled = (rcsHumanizerEn == "true" || rcsHumanizerEn == "1");
+
+  std::string rcsPerf = GetJsonValue(jsonStr, "\"rcs_perfection\"");
+  if (!rcsPerf.empty())
+    rcsPerfection = std::stoi(rcsPerf);
   
   std::string rcsSmooth = GetJsonValue(jsonStr, "\"rcs_smoothness\"");
   if (!rcsSmooth.empty())

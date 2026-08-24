@@ -22,6 +22,9 @@ int main()
   std::cout << "[Aimmy] >> INFO: Settings loaded.\n";
   std::cout << "               | RCS Enabled: " << (Config::rcsEnabled ? "true" : "false") << "\n";
   std::cout << "               | RCS Humanizer Enabled: " << (Config::rcsHumanizerEnabled ? "true" : "false") << "\n";
+  std::cout << "               | RCS Perfection: " << Config::rcsPerfection << "\n";
+  std::cout << "               | RCS Smoothness: " << Config::rcsSmoothness << "\n";
+  std::cout << "               | RCS Jitter: " << Config::rcsJitter << "\n";
 
   if (!g_pProcess.AttachProcess("cs2.exe"))
   {
