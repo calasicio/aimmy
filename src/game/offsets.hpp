@@ -8,9 +8,9 @@ namespace cs2_dumper
   {
     namespace client_dll
     {
-      constexpr std::ptrdiff_t dwLocalPlayerPawn = 0x23AA118;
-      constexpr std::ptrdiff_t dwEntityList = 0x2555050;
-      constexpr std::ptrdiff_t dwSensitivity = 0x23A7428;
+      constexpr std::ptrdiff_t dwLocalPlayerPawn = 0x23C7268;
+      constexpr std::ptrdiff_t dwEntityList = 0x2572230;
+      constexpr std::ptrdiff_t dwSensitivity = 0x23C4578;
       constexpr std::ptrdiff_t dwSensitivity_sensitivity = 0x58;
     }
   }
