@@ -5,33 +5,64 @@
 #include "utils/mouse.hpp"
 #include "utils/config.hpp"
 #include <Windows.h>
-#include <cmath>
+#include <algorithm>
 
-float HumanizedRCS::RandomFloat(float min, float max)
+RCS g_RCS;
+
+float RCS::RandomFloat(float min, float max)
 {
   return std::uniform_real_distribution<float>(min, max)(gen);
 }
 
-int HumanizedRCS::RandomInt(int min, int max)
+int RCS::RandomInt(int min, int max)
 {
   return std::uniform_int_distribution<int>(min, max)(gen);
 }
 
-Vector2 HumanizedRCS::ComputeBezier(const Vector2 &p0, const Vector2 &p1, const Vector2 &p2, float t)
+Vector2 RCS::ComputeBezier(const Vector2 &p0, const Vector2 &p1, const Vector2 &p2, float t)
 {
   float u = 1.0f - t;
   return (p0 * (u * u)) + (p1 * (2.0f * u * t)) + (p2 * (t * t));
 }
 
-float HumanizedRCS::getSensitivity(uintptr_t clientBase)
+float RCS::getSensitivity(uintptr_t clientBase)
 {
   float sens = g_pProcess.read<float>(clientBase + cs2_dumper::offsets::client_dll::dwSensitivity +
                                       cs2_dumper::offsets::client_dll::dwSensitivity_sensitivity);
   return (sens <= 0.0f) ? 1.0f : sens;
 }
 
-void HumanizedRCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
+RCS::MappedValues RCS::MapConfig()
 {
+  MappedValues m;
+
+  // Control Level: 100 = perfect, 0 = chaotic
+  // Maps to: error scale (0.0 to 1.0)
+  m.errorScale = (100.0f - Config::rcsControl) / 100.0f;
+
+  // Reaction Speed: 100 = instant (8ms), 0 = slow (25ms)
+  float speedT = Config::rcsReactionSpeed / 100.0f;
+  m.baseReactionDelay = (25.0f - (speedT * 17.0f)) / 1000.0f; // 25ms -> 8ms
+  m.reactionVariance = (20.0f - (speedT * 15.0f)) / 1000.0f;  // 20ms -> 5ms variance
+
+  // Smoothness: 0 = straight lines, 100 = very curved
+  m.curveAmount = (Config::rcsSmoothness / 100.0f) * 30.0f; // 0-30 pixels
+
+  // Stability: 100 = rock solid, 0 = very shaky
+  m.jitterAmount = ((100.0f - Config::rcsStability) / 100.0f) * 6.0f; // 0-6 pixels
+
+  // Aggression: 0 = gentle, 100 = hard yank
+  m.overcompensation = 1.0f + ((Config::rcsAggression / 100.0f) * 0.15f); // 1.0 to 1.15
+
+  // Attention Lapse: Lower control = more "forgetting" to correct
+  m.lapseChance = 0.02f + (m.errorScale * 0.13f); // 2% to 15%
+
+  return m;
+}
+
+void RCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
+{
+  auto cfg = MapConfig();
   auto now = std::chrono::steady_clock::now();
 
   // Sanity checks
@@ -66,16 +97,13 @@ void HumanizedRCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
 
   // === TIMING HUMANIZATION ===
   float elapsed = std::chrono::duration<float>(now - lastCorrectionTime).count();
-  float perfection = std::clamp(static_cast<float>(Config::rcsPerfection), 0.0f, 100.0f);
+  float reactionDelay = cfg.baseReactionDelay + (RandomFloat(0.0f, cfg.reactionVariance) * cfg.errorScale);
 
-  // Reaction delay: 8ms base + up to 17ms variance based on perfection
-  float reactionDelay = BASE_REACTION_DELAY + (RandomFloat(0.0f, 0.017f) * (100.0f - perfection) / 100.0f);
   if (elapsed < reactionDelay)
     return;
 
-  // Attention lapse: 5-15% chance to skip frame
-  float lapseChance = 0.05f + (0.10f * (100.0f - perfection) / 100.0f);
-  if (RandomFloat(0.0f, 1.0f) < lapseChance)
+  // Attention lapse: occasionally skip correction (distraction)
+  if (RandomFloat(0.0f, 1.0f) < cfg.lapseChance)
   {
     lastCorrectionTime = now;
     return;
@@ -96,10 +124,6 @@ void HumanizedRCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
   if (cache.count <= 0 || cache.count >= 0xFFFF)
     return;
 
-  struct Vector3
-  {
-    float x, y, z;
-  };
   Vector3 aimPunch = g_pProcess.read<Vector3>(cache.data + (cache.count - 1) * sizeof(Vector3));
   Vector2 currentPunch{aimPunch.x, aimPunch.y};
 
@@ -131,103 +155,77 @@ void HumanizedRCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
 
   if (earlySpray)
   {
-    target.y *= 1.08f + (RandomFloat(0.0f, 0.06f) * (100.0f - perfection) / 100.0f);
+    // Aggression affects initial overcompensation
+    target.y *= cfg.overcompensation + (RandomFloat(0.0f, 0.05f) * cfg.errorScale);
   }
   else if (midSpray)
   {
-    target.x *= 1.05f;
+    // Horizontal gets harder to control
+    target.x *= 1.0f + (0.05f * cfg.errorScale);
   }
   else if (lateSpray)
   {
-    float fatigue = (std::min)((shotsFired - 10) * 0.012f, 0.12f);
+    // Fatigue: more variance
+    float fatigue = (std::min)((shotsFired - 10) * 0.012f, 0.12f) * cfg.errorScale;
     target.x *= (1.0f + RandomFloat(-fatigue, fatigue));
     target.y *= (1.0f + RandomFloat(-fatigue * 0.5f, fatigue * 0.5f));
   }
 
   // === ERROR INJECTION ===
-  if (Config::rcsHumanizerEnabled && perfection < 100.0f)
+  if (Config::rcsHumanizerEnabled && cfg.errorScale > 0.0f)
   {
-    float errorScale = (100.0f - perfection) / 100.0f;
+    float varX = (shotsFired < 9) ? 0.12f : 0.20f;
+    float varY = (shotsFired < 9) ? 0.18f : 0.10f;
 
-    // Phase-dependent error multipliers (FIXED: proper min/max)
-    float minErrX, maxErrX, minErrY, maxErrY;
+    target.x *= (1.0f + RandomFloat(-varX, varX) * cfg.errorScale);
+    target.y *= (1.0f + RandomFloat(-varY, varY) * cfg.errorScale);
 
-    if (shotsFired < 9)
-    {
-      minErrX = 0.88f;
-      maxErrX = 1.12f; // 12% variance
-      minErrY = 0.82f;
-      maxErrY = 1.18f; // 18% variance (vertical harder)
-    }
-    else
-    {
-      minErrX = 0.80f;
-      maxErrX = 1.20f; // 20% variance (late spray)
-      minErrY = 0.90f;
-      maxErrY = 1.10f; // 10% variance
-    }
-
-    // Scale by perfection
-    float rangeX = (maxErrX - minErrX) * errorScale;
-    float rangeY = (maxErrY - minErrY) * errorScale;
-
-    target.x *= (1.0f - (rangeX * 0.5f) + RandomFloat(0.0f, rangeX));
-    target.y *= (1.0f - (rangeY * 0.5f) + RandomFloat(0.0f, rangeY));
-
-    // Micro-overshoot (30% chance)
-    if (RandomFloat(0.0f, 1.0f) < 0.3f * errorScale && shotsFired > 3 && shotsFired < 25)
+    // Micro-overshoot (30% chance, only when not perfect)
+    if (RandomFloat(0.0f, 1.0f) < 0.3f * cfg.errorScale && shotsFired > 3 && shotsFired < 25)
     {
       float overshoot = RandomFloat(1.03f, 1.10f);
       target.y *= overshoot;
-      // Queue correction for next frame
       pendingCorrection.y = target.y * (1.0f - overshoot) * 0.6f;
     }
   }
 
-  // === BEZIER SMOOTHING (FIXED: variable t with easing) ===
-  if (Config::rcsSmoothness > 0)
+  // === BEZIER SMOOTHING ===
+  if (Config::rcsSmoothness > 0 && cfg.curveAmount > 0.0f)
   {
-    float maxCurve = (static_cast<float>(Config::rcsSmoothness) / 100.0f) * 25.0f;
-
     Vector2 start{0.0f, 0.0f};
     Vector2 end{target.x, target.y};
 
-    // Control point with bias from previous movement
     float biasX = (lastShotsFired > 0) ? (target.x * 0.15f) : 0.0f;
     float biasY = (lastShotsFired > 0) ? (target.y * 0.15f) : 0.0f;
 
     Vector2 control{
-        (target.x / 2.0f) + RandomFloat(-maxCurve, maxCurve) + biasX,
-        (target.y / 2.0f) + RandomFloat(-maxCurve, maxCurve) + biasY};
+        (target.x / 2.0f) + RandomFloat(-cfg.curveAmount, cfg.curveAmount) + biasX,
+        (target.y / 2.0f) + RandomFloat(-cfg.curveAmount, cfg.curveAmount) + biasY};
 
-    // Ease-out cubic: fast start, slow end
+    // Ease-out cubic sampling
     float t = 1.0f - std::pow(1.0f - RandomFloat(0.6f, 1.0f), 3.0f);
     target = ComputeBezier(start, control, end, t);
   }
 
-  // === PERLIN JITTER ===
-  if (Config::rcsJitter > 0)
+  // === JITTER (Stability) ===
+  if (Config::rcsStability < 100 && cfg.jitterAmount > 0.0f)
   {
-    float jitterScale = static_cast<float>(Config::rcsJitter) / 100.0f;
-    float jitterAmt = (shotsFired <= 3) ? 4.0f : 2.0f;
-
-    float maxJitter = jitterScale * jitterAmt;
-    target.x += RandomFloat(-maxJitter, maxJitter);
-    target.y += RandomFloat(-maxJitter, maxJitter);
+    float jitterMult = (shotsFired <= 3) ? 1.5f : 1.0f;
+    target.x += RandomFloat(-cfg.jitterAmount, cfg.jitterAmount) * jitterMult;
+    target.y += RandomFloat(-cfg.jitterAmount, cfg.jitterAmount) * jitterMult;
   }
 
   // === CROSSHAIR DRIFT ===
   aimDrift.x += RandomFloat(-0.4f, 0.4f);
   aimDrift.y += RandomFloat(-0.4f, 0.4f);
-  aimDrift = aimDrift * 0.92f; // Decay
+  aimDrift = aimDrift * 0.92f;
 
-  float driftStrength = (perfection > 70.0f) ? 0.4f : 0.8f;
+  float driftStrength = (Config::rcsControl > 70) ? 0.4f : 0.8f;
   target += aimDrift * driftStrength;
 
-  // === SETTLING (Post-spray tremor) ===
+  // === SETTLING ===
   if (wasSpraying && shotsFired <= lastShotsFired)
   {
-    // Spray just ended
     sprayEndTime = now;
   }
   wasSpraying = true;
@@ -247,7 +245,7 @@ void HumanizedRCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
   int dispatchX = static_cast<int>(target.x);
   int dispatchY = static_cast<int>(target.y);
 
-  // Pixel walk error
+  // Pixel walk
   if (std::abs(dispatchX) > 2 && RandomFloat(0.0f, 1.0f) < 0.08f)
   {
     pixelError = RandomInt(-1, 1);
@@ -271,8 +269,6 @@ void HumanizedRCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
   lastCorrectionTime = now;
   lastShotsFired = shotsFired;
 }
-
-HumanizedRCS g_RCS;
 
 void features::ExecuteRCS(uintptr_t localPlayerPawn, uintptr_t clientBase)
 {
