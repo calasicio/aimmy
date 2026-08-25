@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 std::string GetJsonValue(const std::string &json, std::string_view key)
 {
@@ -35,23 +36,41 @@ void Config::LoadSettings(std::string_view filePath)
   std::string jsonStr = buffer.str();
   file.close();
 
-  std::string rcsEn = GetJsonValue(jsonStr, "\"rcs_enabled\"");
-  if (!rcsEn.empty())
-    rcsEnabled = (rcsEn == "true" || rcsEn == "1");
+  auto loadBool = [&](std::string_view key, bool &target)
+  {
+    std::string val = GetJsonValue(jsonStr, key);
+    if (!val.empty())
+      target = (val == "true" || val == "1");
+  };
 
-  std::string rcsHumanizerEn = GetJsonValue(jsonStr, "\"rcs_humanizer_enabled\"");
-  if (!rcsHumanizerEn.empty())
-    rcsHumanizerEnabled = (rcsHumanizerEn == "true" || rcsHumanizerEn == "1");
+  auto loadInt = [&](std::string_view key, int &target)
+  {
+    std::string val = GetJsonValue(jsonStr, key);
+    if (!val.empty())
+    {
+      try
+      {
+        target = std::stoi(val);
+      }
+      catch (...)
+      {
+      }
+    }
+  };
 
-  std::string rcsPerf = GetJsonValue(jsonStr, "\"rcs_perfection\"");
-  if (!rcsPerf.empty())
-    rcsPerfection = std::stoi(rcsPerf);
-  
-  std::string rcsSmooth = GetJsonValue(jsonStr, "\"rcs_smoothness\"");
-  if (!rcsSmooth.empty())
-    rcsSmoothness = std::stoi(rcsSmooth);
+  loadBool("\"rcs_enabled\"", rcsEnabled);
+  loadBool("\"rcs_humanizer_enabled\"", rcsHumanizerEnabled);
 
-  std::string rcsJit = GetJsonValue(jsonStr, "\"rcs_jitter\"");
-  if (!rcsJit.empty())
-    rcsJitter = std::stoi(rcsJit);
+  loadInt("\"rcs_control\"", rcsControl);
+  loadInt("\"rcs_reaction_speed\"", rcsReactionSpeed);
+  loadInt("\"rcs_smoothness\"", rcsSmoothness);
+  loadInt("\"rcs_stability\"", rcsStability);
+  loadInt("\"rcs_aggression\"", rcsAggression);
+
+  // Clamp values
+  rcsControl = std::clamp(rcsControl, 0, 100);
+  rcsReactionSpeed = std::clamp(rcsReactionSpeed, 0, 100);
+  rcsSmoothness = std::clamp(rcsSmoothness, 0, 100);
+  rcsStability = std::clamp(rcsStability, 0, 100);
+  rcsAggression = std::clamp(rcsAggression, 0, 100);
 }
