@@ -62,7 +62,6 @@ RCS::MappedValues RCS::MapConfig()
 
 void RCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
 {
-  auto cfg = MapConfig();
   auto now = std::chrono::steady_clock::now();
 
   // Sanity checks
@@ -95,18 +94,23 @@ void RCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
     return;
   }
 
-  // === TIMING HUMANIZATION ===
-  float elapsed = std::chrono::duration<float>(now - lastCorrectionTime).count();
-  float reactionDelay = cfg.baseReactionDelay + (RandomFloat(0.0f, cfg.reactionVariance) * cfg.errorScale);
-
-  if (elapsed < reactionDelay)
-    return;
-
-  // Attention lapse: occasionally skip correction (distraction)
-  if (RandomFloat(0.0f, 1.0f) < cfg.lapseChance)
+  // === HUMANIZER TIMING (only if enabled) ===
+  if (Config::rcsHumanizerEnabled)
   {
-    lastCorrectionTime = now;
-    return;
+    auto cfg = MapConfig();
+
+    float elapsed = std::chrono::duration<float>(now - lastCorrectionTime).count();
+    float reactionDelay = cfg.baseReactionDelay + (RandomFloat(0.0f, cfg.reactionVariance) * cfg.errorScale);
+
+    if (elapsed < reactionDelay)
+      return;
+
+    // Attention lapse
+    if (RandomFloat(0.0f, 1.0f) < cfg.lapseChance)
+    {
+      lastCorrectionTime = now;
+      return;
+    }
   }
 
   // === READ AIM PUNCH ===
@@ -130,9 +134,12 @@ void RCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
   // === CORE CALCULATION ===
   Vector2 deltaPunch = (currentPunch - oldPunch) * -1.0f * CORRECTION_FACTOR;
 
-  // Apply pending correction from previous overshoot
-  deltaPunch += pendingCorrection;
-  pendingCorrection = {0.0f, 0.0f};
+  // Apply pending correction
+  if (Config::rcsHumanizerEnabled)
+  {
+    deltaPunch += pendingCorrection;
+    pendingCorrection = {0.0f, 0.0f};
+  }
 
   float sensitivity = getSensitivity(clientBase);
 
@@ -148,94 +155,91 @@ void RCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
 
   Vector2 target = rawPixel;
 
-  // === SPRAY PHASE MODELING ===
-  bool earlySpray = shotsFired <= 3;
-  bool midSpray = shotsFired > 3 && shotsFired <= 10;
-  bool lateSpray = shotsFired > 10;
-
-  if (earlySpray)
+  // === HUMANIZER FEATURES ===
+  if (Config::rcsHumanizerEnabled)
   {
-    // Aggression affects initial overcompensation
-    target.y *= cfg.overcompensation + (RandomFloat(0.0f, 0.05f) * cfg.errorScale);
-  }
-  else if (midSpray)
-  {
-    // Horizontal gets harder to control
-    target.x *= 1.0f + (0.05f * cfg.errorScale);
-  }
-  else if (lateSpray)
-  {
-    // Fatigue: more variance
-    float fatigue = (std::min)((shotsFired - 10) * 0.012f, 0.12f) * cfg.errorScale;
-    target.x *= (1.0f + RandomFloat(-fatigue, fatigue));
-    target.y *= (1.0f + RandomFloat(-fatigue * 0.5f, fatigue * 0.5f));
-  }
+    auto cfg = MapConfig();
 
-  // === ERROR INJECTION ===
-  if (Config::rcsHumanizerEnabled && cfg.errorScale > 0.0f)
-  {
-    float varX = (shotsFired < 9) ? 0.12f : 0.20f;
-    float varY = (shotsFired < 9) ? 0.18f : 0.10f;
+    // Spray phase modeling
+    bool earlySpray = shotsFired <= 3;
+    bool lateSpray = shotsFired > 10;
 
-    target.x *= (1.0f + RandomFloat(-varX, varX) * cfg.errorScale);
-    target.y *= (1.0f + RandomFloat(-varY, varY) * cfg.errorScale);
-
-    // Micro-overshoot (30% chance, only when not perfect)
-    if (RandomFloat(0.0f, 1.0f) < 0.3f * cfg.errorScale && shotsFired > 3 && shotsFired < 25)
+    if (earlySpray)
     {
-      float overshoot = RandomFloat(1.03f, 1.10f);
-      target.y *= overshoot;
-      pendingCorrection.y = target.y * (1.0f - overshoot) * 0.6f;
+      target.y *= cfg.overcompensation + (RandomFloat(0.0f, 0.05f) * cfg.errorScale);
     }
-  }
+    else if (lateSpray)
+    {
+      float fatigue = (std::min<float>)((shotsFired - 10) * 0.012f, 0.12f) * cfg.errorScale;
+      target.x *= (1.0f + RandomFloat(-fatigue, fatigue));
+      target.y *= (1.0f + RandomFloat(-fatigue * 0.5f, fatigue * 0.5f));
+    }
 
-  // === BEZIER SMOOTHING ===
-  if (Config::rcsSmoothness > 0 && cfg.curveAmount > 0.0f)
-  {
-    Vector2 start{0.0f, 0.0f};
-    Vector2 end{target.x, target.y};
+    // Error injection
+    if (cfg.errorScale > 0.0f)
+    {
+      float varX = (shotsFired < 9) ? 0.12f : 0.20f;
+      float varY = (shotsFired < 9) ? 0.18f : 0.10f;
 
-    float biasX = (lastShotsFired > 0) ? (target.x * 0.15f) : 0.0f;
-    float biasY = (lastShotsFired > 0) ? (target.y * 0.15f) : 0.0f;
+      target.x *= (1.0f + RandomFloat(-varX, varX) * cfg.errorScale);
+      target.y *= (1.0f + RandomFloat(-varY, varY) * cfg.errorScale);
 
-    Vector2 control{
-        (target.x / 2.0f) + RandomFloat(-cfg.curveAmount, cfg.curveAmount) + biasX,
-        (target.y / 2.0f) + RandomFloat(-cfg.curveAmount, cfg.curveAmount) + biasY};
+      // Micro-overshoot
+      if (RandomFloat(0.0f, 1.0f) < 0.3f * cfg.errorScale && shotsFired > 3 && shotsFired < 25)
+      {
+        float overshoot = RandomFloat(1.03f, 1.10f);
+        target.y *= overshoot;
+        pendingCorrection.y = target.y * (1.0f - overshoot) * 0.6f;
+      }
+    }
 
-    // Ease-out cubic sampling
-    float t = 1.0f - std::pow(1.0f - RandomFloat(0.6f, 1.0f), 3.0f);
-    target = ComputeBezier(start, control, end, t);
-  }
+    // Bezier smoothing
+    if (Config::rcsSmoothness > 0 && cfg.curveAmount > 0.0f)
+    {
+      Vector2 start{0.0f, 0.0f};
+      Vector2 end{target.x, target.y};
 
-  // === JITTER (Stability) ===
-  if (Config::rcsStability < 100 && cfg.jitterAmount > 0.0f)
-  {
-    float jitterMult = (shotsFired <= 3) ? 1.5f : 1.0f;
-    target.x += RandomFloat(-cfg.jitterAmount, cfg.jitterAmount) * jitterMult;
-    target.y += RandomFloat(-cfg.jitterAmount, cfg.jitterAmount) * jitterMult;
-  }
+      float biasX = (lastShotsFired > 0) ? (target.x * 0.15f) : 0.0f;
+      float biasY = (lastShotsFired > 0) ? (target.y * 0.15f) : 0.0f;
 
-  // === CROSSHAIR DRIFT ===
-  aimDrift.x += RandomFloat(-0.4f, 0.4f);
-  aimDrift.y += RandomFloat(-0.4f, 0.4f);
-  aimDrift = aimDrift * 0.92f;
+      Vector2 control{
+          (target.x / 2.0f) + RandomFloat(-cfg.curveAmount, cfg.curveAmount) + biasX,
+          (target.y / 2.0f) + RandomFloat(-cfg.curveAmount, cfg.curveAmount) + biasY};
 
-  float driftStrength = (Config::rcsControl > 70) ? 0.4f : 0.8f;
-  target += aimDrift * driftStrength;
+      float t = 1.0f - std::pow(1.0f - RandomFloat(0.6f, 1.0f), 3.0f);
+      target = ComputeBezier(start, control, end, t);
+    }
 
-  // === SETTLING ===
-  if (wasSpraying && shotsFired <= lastShotsFired)
-  {
-    sprayEndTime = now;
-  }
-  wasSpraying = true;
+    // Jitter
+    if (Config::rcsStability < 100 && cfg.jitterAmount > 0.0f)
+    {
+      float jitterMult = (shotsFired <= 3) ? 1.5f : 1.0f;
+      target.x += RandomFloat(-cfg.jitterAmount, cfg.jitterAmount) * jitterMult;
+      target.y += RandomFloat(-cfg.jitterAmount, cfg.jitterAmount) * jitterMult;
+    }
 
-  float timeSinceSpray = std::chrono::duration<float>(now - sprayEndTime).count();
-  if (shotsFired <= lastShotsFired && timeSinceSpray < 0.25f)
-  {
-    float settleAmt = (0.25f - timeSinceSpray) * 12.0f;
-    target.x += RandomFloat(-settleAmt, settleAmt);
-    target.y += RandomFloat(-settleAmt, settleAmt);
+    // Crosshair drift
+    aimDrift.x += RandomFloat(-0.4f, 0.4f);
+    aimDrift.y += RandomFloat(-0.4f, 0.4f);
+    aimDrift = aimDrift * 0.92f;
+
+    float driftStrength = (Config::rcsControl > 70) ? 0.4f : 0.8f;
+    target += aimDrift * driftStrength;
+
+    // Settling
+    if (wasSpraying && shotsFired <= lastShotsFired)
+    {
+      sprayEndTime = now;
+    }
+    wasSpraying = true;
+
+    float timeSinceSpray = std::chrono::duration<float>(now - sprayEndTime).count();
+    if (shotsFired <= lastShotsFired && timeSinceSpray < 0.25f)
+    {
+      float settleAmt = (0.25f - timeSinceSpray) * 12.0f;
+      target.x += RandomFloat(-settleAmt, settleAmt);
+      target.y += RandomFloat(-settleAmt, settleAmt);
+    }
   }
 
   // === MOUSE DISPATCH ===
@@ -246,15 +250,18 @@ void RCS::Update(uintptr_t localPlayerPawn, uintptr_t clientBase)
   int dispatchY = static_cast<int>(target.y);
 
   // Pixel walk
-  if (std::abs(dispatchX) > 2 && RandomFloat(0.0f, 1.0f) < 0.08f)
+  if (Config::rcsHumanizerEnabled)
   {
-    pixelError = RandomInt(-1, 1);
-    dispatchX += pixelError;
-  }
-  else if (pixelError != 0 && RandomFloat(0.0f, 1.0f) < 0.7f)
-  {
-    dispatchX -= pixelError;
-    pixelError = 0;
+    if (std::abs(dispatchX) > 2 && RandomFloat(0.0f, 1.0f) < 0.08f)
+    {
+      pixelError = RandomInt(-1, 1);
+      dispatchX += pixelError;
+    }
+    else if (pixelError != 0 && RandomFloat(0.0f, 1.0f) < 0.7f)
+    {
+      dispatchX -= pixelError;
+      pixelError = 0;
+    }
   }
 
   accumulatedSub.x = target.x - static_cast<float>(dispatchX);
