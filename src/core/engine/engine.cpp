@@ -5,6 +5,7 @@
 
 using namespace std::chrono_literals;
 
+#include "core/engine/cache/cache.hpp"
 #include "core/offsets/dumper.hpp"
 #include "utils/logger/logger.hpp"
 
@@ -54,9 +55,21 @@ bool Engine::initImpl()
     logger::info("Using default offsets");
   }
 
+  std::thread(&Engine::thread, this).detach();
+
   logger::info("Successfully initialized engine...");
 
   return true;
+}
+
+void Engine::thread()
+{
+  while (true)
+  {
+    const auto now = std::chrono::steady_clock::now();
+
+    Cache::update();
+  }
 }
 
 bool Engine::awaitProcess()
