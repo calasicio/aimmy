@@ -20,6 +20,11 @@ namespace offsets
   namespace CGameSceneNode
   {
     std::ptrdiff_t m_vecOrigin = 0x80;
+
+    namespace CSkeletonInstance
+    {
+      std::ptrdiff_t m_modelState = 0x140;
+    }
   }
 
   namespace C_BaseEntity
@@ -28,8 +33,4 @@ namespace offsets
     std::ptrdiff_t m_iTeamNum = 0x3E7;
   }
 
-  namespace CSkeletonInstance
-  {
-    std::ptrdiff_t m_modelState = 0x140;
-  }
 }

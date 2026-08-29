@@ -158,6 +158,13 @@ bool Dumper::loadOffsets()
       "m_vecOrigin",
       {"client.dll", "classes", "CGameSceneNode", "fields", "m_vecOrigin"});
 
+  // |- CSkeletonInstance
+  success &= readOffset(
+      offsetsData,
+      offsets::CGameSceneNode::CSkeletonInstance::m_modelState,
+      "m_modelState",
+      {"client.dll", "classes", "CSkeletonInstance", "fields", "m_modelState"});
+
   // C_BaseEntity
   success &= readOffset(
       offsetsData,
@@ -170,13 +177,6 @@ bool Dumper::loadOffsets()
       offsets::C_BaseEntity::m_iTeamNum,
       "m_iTeamNum",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_iTeamNum"});
-
-  // CSkeletonInstance
-  success &= readOffset(
-      offsetsData,
-      offsets::CSkeletonInstance::m_modelState,
-      "m_modelState",
-      {"client.dll", "classes", "CSkeletonInstance", "fields", "m_modelState"});
 
   return success;
 }
