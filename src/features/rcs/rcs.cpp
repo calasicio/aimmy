@@ -9,7 +9,26 @@
 const float CORRECTION_FACTOR = 3.37;
 const float YAW_PITCH_FACTOR = 0.022;
 
-const float EMA_ALPHA = 0.1f;
+/* EMA_ALPHA: How fast the target moves
+ *
+ * Value: 1.0 = No smoothing
+ *        0.0 = Heavy smoothing, drags behind raw input, ignoring
+ *              spikes and only tracking sustained trends
+ *
+ */
+const float EMA_ALPHA = 0.25f;
+
+/* MAX_ACCEL: How fast the output can chase
+ *
+ * Value: Infinite = No limit, snaps to whatever EMA target is immediately
+ *        0.8      = Output can only change by 0.8 units per frame to the target,
+ *                   no matter how far away the target is
+ *
+ * Controls the maximum frame-to-frame delta of the final correction. Adds inertia.
+ * Makes output ramps up gradually
+ * 
+ */
+const float MAX_ACCEL = 0.6f;
 
 void RCS::update(float dt)
 {
@@ -17,9 +36,7 @@ void RCS::update(float dt)
 
   if (!snapshot.localPlayer.isAlive)
   {
-    oldAimPunch = {0.0, 0.0};
-    accumulatedError = {0.0, 0.0};
-    filteredDeltaPunch = {0.0, 0.0};
+    resetState(std::nullopt);
     return;
   }
 
@@ -28,9 +45,7 @@ void RCS::update(float dt)
 
   if (snapshot.localPlayer.shotsFired <= 1)
   {
-    oldAimPunch = currentAimPunch;
-    accumulatedError = {0.0, 0.0};
-    filteredDeltaPunch = {0.0, 0.0};
+    resetState(currentAimPunch);
     return;
   }
 
@@ -42,11 +57,25 @@ void RCS::update(float dt)
 
   // Low pass filter, Exponential Moving Average (EMA)
   {
-    Vector2 emaDeltaPunch = {
+    deltaPunch = {
         filteredDeltaPunch.x + EMA_ALPHA * (rawDeltaPunch.x - filteredDeltaPunch.x),
         filteredDeltaPunch.y + EMA_ALPHA * (rawDeltaPunch.y - filteredDeltaPunch.y)};
-    deltaPunch = emaDeltaPunch;
-    filteredDeltaPunch = emaDeltaPunch;
+    filteredDeltaPunch = deltaPunch;
+  }
+
+  // Acceleration rate limiting
+  {
+    Vector2 desired = deltaPunch;
+    Vector2 diff = desired - limitedDeltaPunch;
+
+    float diffLen = diff.length();
+    if (diffLen > MAX_ACCEL && diffLen > 0.0f)
+    {
+      diff = (diff / diffLen) * MAX_ACCEL;
+    }
+
+    limitedDeltaPunch += diff;
+    deltaPunch = limitedDeltaPunch;
   }
 
   Vector2 moveAmount = {
@@ -66,3 +95,19 @@ void RCS::update(float dt)
 
   oldAimPunch = currentAimPunch;
 };
+
+void RCS::resetState(std::optional<Vector2> aimPunch)
+{
+  if (aimPunch.has_value())
+  {
+    oldAimPunch = aimPunch.value();
+  }
+  else
+  {
+    oldAimPunch = {0.0, 0.0};
+  }
+
+  accumulatedError = {0.0, 0.0};
+  filteredDeltaPunch = {0.0, 0.0};
+  limitedDeltaPunch = {0.0, 0.0};
+}
