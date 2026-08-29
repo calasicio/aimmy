@@ -31,9 +31,14 @@ bool Cheat::initImpl()
 
 void Cheat::threadImpl()
 {
+  auto lastFrame = std::chrono::steady_clock::now();
+
   while (isRunning)
   {
-    auto start = std::chrono::steady_clock::now();
+    const auto now = std::chrono::steady_clock::now();
+
+    const float dt = std::chrono::duration<float>(now - lastFrame).count();
+    lastFrame = now;
 
     if (GetAsyncKeyState(VK_END) & 0x8000)
     {
@@ -41,7 +46,7 @@ void Cheat::threadImpl()
       break;
     }
 
-    std::this_thread::sleep_until(start + std::chrono::milliseconds(1));
+    std::this_thread::sleep_until(now + std::chrono::milliseconds(1));
   }
 }
 
