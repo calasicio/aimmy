@@ -3,6 +3,7 @@
 #include <string>
 
 #include "core/engine/cache/cache.hpp"
+#include "utils/random/random.hpp"
 #include "utils/mouse/mouse.hpp"
 #include "utils/logger/logger.hpp"
 
@@ -26,9 +27,12 @@ const float EMA_ALPHA = 0.25f;
  *
  * Controls the maximum frame-to-frame delta of the final correction. Adds inertia.
  * Makes output ramps up gradually
- * 
+ *
  */
-const float MAX_ACCEL = 0.6f;
+const float MAX_ACCEL = 0.5f;
+
+const float NOISE_SCALE = 0.12f;
+const float NOISE_CORRELATION = 0.9f;
 
 void RCS::update(float dt)
 {
@@ -78,6 +82,17 @@ void RCS::update(float dt)
     deltaPunch = limitedDeltaPunch;
   }
 
+  // Colored Noise
+  {
+    Vector2 whiteNoise = {
+        random::rangeFloat(-1.0f, 1.0f),
+        random::rangeFloat(-1.0f, 1.0f)};
+
+    noiseOffset = noiseOffset * NOISE_CORRELATION + whiteNoise * NOISE_SCALE * (1.0f - NOISE_CORRELATION) - noiseOffset * 0.02f;
+
+    deltaPunch += noiseOffset;
+  }
+
   Vector2 moveAmount = {
       (deltaPunch.y / snapshot.globals.sensitivity) / -YAW_PITCH_FACTOR + accumulatedError.x,
       (deltaPunch.x / snapshot.globals.sensitivity) / YAW_PITCH_FACTOR + accumulatedError.y};
@@ -110,4 +125,5 @@ void RCS::resetState(std::optional<Vector2> aimPunch)
   accumulatedError = {0.0, 0.0};
   filteredDeltaPunch = {0.0, 0.0};
   limitedDeltaPunch = {0.0, 0.0};
+  noiseOffset = {0.0, 0.0};
 }

@@ -16,6 +16,7 @@ private:
   Vector2 accumulatedError = {0.0, 0.0};
   Vector2 filteredDeltaPunch = {0.0, 0.0};
   Vector2 limitedDeltaPunch = {0.0, 0.0};
+  Vector2 noiseOffset = {0.0, 0.0};
 
 private:
   void resetState(std::optional<Vector2> aimPunch);
