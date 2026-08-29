@@ -10,5 +10,6 @@ public:
   void update(float dt);
 
 private:
-  Vector2 oldAimPunch{0.0, 0.0};
+  Vector2 oldAimPunch = {0.0, 0.0};
+  Vector2 accumulatedError = {0.0, 0.0};
 };

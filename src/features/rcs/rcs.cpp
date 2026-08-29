@@ -27,18 +27,23 @@ void RCS::update(float dt)
   Vector3 aimPunch = snapshot.localPlayer.aimPunch;
   Vector2 currentAimPunch = {aimPunch.x, aimPunch.y};
 
-  Vector2 deltaPunch = (currentAimPunch - oldAimPunch) * -1.0 * CORRECTION_FACTOR;
+  Vector2 deltaPunch = (currentAimPunch - oldAimPunch);
+
+  deltaPunch *= -1.0 * CORRECTION_FACTOR;
 
   Vector2 moveAmount = {
-      (deltaPunch.y / snapshot.globals.sensitivity) / -0.022f,
-      (deltaPunch.x / snapshot.globals.sensitivity) / 0.022f};
+      (deltaPunch.y / snapshot.globals.sensitivity) / -0.022f + accumulatedError.x,
+      (deltaPunch.x / snapshot.globals.sensitivity) / 0.022f + accumulatedError.y};
 
-  int moveXAmountInPixel = static_cast<int>(moveAmount.x);
-  int moveYAmountInPixel = static_cast<int>(moveAmount.y);
+  int moveX = static_cast<int>(moveAmount.x);
+  int moveY = static_cast<int>(moveAmount.y);
 
-  if (moveXAmountInPixel != 0 || moveYAmountInPixel != 0)
+  accumulatedError.x = moveAmount.x - moveX;
+  accumulatedError.y = moveAmount.y - moveY;
+
+  if (moveX != 0 || moveY != 0)
   {
-    mouse::moveMouseRelative(moveXAmountInPixel, moveYAmountInPixel);
+    mouse::moveMouseRelative(moveX, moveY);
   }
 
   oldAimPunch = currentAimPunch;
