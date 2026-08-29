@@ -107,6 +107,13 @@ bool Dumper::loadOffsets()
 
   bool success = true;
 
+  // Base Offsets
+  success &= readOffset(
+      offsetsData,
+      offsets::dwLocalPlayerController,
+      "dwLocalPlayerController",
+      {"client.dll", "dwLocalPlayerController"});
+
   success &= readOffset(
       offsetsData,
       offsets::dwLocalPlayerPawn,
@@ -131,17 +138,45 @@ bool Dumper::loadOffsets()
       "dwSensitivity_sensitivity",
       {"client.dll", "dwSensitivity_sensitivity"});
 
+  // C_CSPlayerPawn
   success &= readOffset(
       clientDLLData,
-      offsets::playerPawn::m_iShotsFired,
+      offsets::C_CSPlayerPawn::m_iShotsFired,
       "m_iShotsFired",
       {"client.dll", "classes", "C_CSPlayerPawn", "fields", "m_iShotsFired"});
 
   success &= readOffset(
       offsetsData,
-      offsets::playerPawn::m_pAimPunchServices,
+      offsets::C_CSPlayerPawn::m_pAimPunchServices,
       "m_pAimPunchServices",
       {"client.dll", "classes", "C_CSPlayerPawn", "fields", "m_pAimPunchServices"});
+
+  // CGameSceneNode
+  success &= readOffset(
+      offsetsData,
+      offsets::CGameSceneNode::m_vecOrigin,
+      "m_vecOrigin",
+      {"client.dll", "classes", "CGameSceneNode", "fields", "m_vecOrigin"});
+
+  // C_BaseEntity
+  success &= readOffset(
+      offsetsData,
+      offsets::C_BaseEntity::m_pGameSceneNode,
+      "m_pGameSceneNode",
+      {"client.dll", "classes", "C_BaseEntity", "fields", "m_pGameSceneNode"});
+
+  success &= readOffset(
+      offsetsData,
+      offsets::C_BaseEntity::m_iTeamNum,
+      "m_iTeamNum",
+      {"client.dll", "classes", "C_BaseEntity", "fields", "m_iTeamNum"});
+
+  // CSkeletonInstance
+  success &= readOffset(
+      offsetsData,
+      offsets::CSkeletonInstance::m_modelState,
+      "m_modelState",
+      {"client.dll", "classes", "CSkeletonInstance", "fields", "m_modelState"});
 
   return success;
 }

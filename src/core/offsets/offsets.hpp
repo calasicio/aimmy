@@ -5,14 +5,31 @@
 
 namespace offsets
 {
-  std::ptrdiff_t dwLocalPlayerPawn;
-  std::ptrdiff_t dwEntityList;
-  std::ptrdiff_t dwSensitivity;
-  std::ptrdiff_t dwSensitivity_sensitivity;
+  std::ptrdiff_t dwLocalPlayerController = 0x23A0F30;
+  std::ptrdiff_t dwLocalPlayerPawn = 0x23C6268;
+  std::ptrdiff_t dwEntityList = 0x2571220;
+  std::ptrdiff_t dwSensitivity = 0x23C3578;
+  std::ptrdiff_t dwSensitivity_sensitivity = 0x58;
 
-  namespace playerPawn
+  namespace C_CSPlayerPawn
   {
-    std::ptrdiff_t m_iShotsFired;
-    std::ptrdiff_t m_pAimPunchServices;
+    std::ptrdiff_t m_iShotsFired = 0x1C8C;
+    std::ptrdiff_t m_pAimPunchServices = 0x14B8;
+  }
+
+  namespace CGameSceneNode
+  {
+    std::ptrdiff_t m_vecOrigin = 0x80;
+  }
+
+  namespace C_BaseEntity
+  {
+    std::ptrdiff_t m_pGameSceneNode = 0x330;
+    std::ptrdiff_t m_iTeamNum = 0x3E7;
+  }
+
+  namespace CSkeletonInstance
+  {
+    std::ptrdiff_t m_modelState = 0x140;
   }
 }
