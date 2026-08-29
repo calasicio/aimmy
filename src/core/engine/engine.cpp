@@ -50,8 +50,8 @@ bool Engine::initImpl()
   }
   else
   {
-    logger::fatal("Failed to dump offsets, cannot continue execution");
-    return false;
+    logger::warning("Failed to dump offsets");
+    logger::info("Using default offsets");
   }
 
   logger::info("Successfully initialized engine...");
@@ -81,7 +81,7 @@ bool Engine::awaitProcess()
 
     if (!attempts)
     {
-      logger::info("Waiting 50s for the game to open..");
+      logger::info("Waiting 50s for the game to open...");
     }
 
     if (attempts > 10)
@@ -97,7 +97,7 @@ bool Engine::awaitModules()
   if (!process || !process->handle_)
     return false;
 
-  logger::info("Waiting for the game to load..");
+  logger::info("Waiting for the game to load...");
 
   do
   {
