@@ -1,7 +1,10 @@
 #include <iostream>
 #include <Windows.h>
+#include <chrono>
+#include <thread>
 
 #include "core/engine/engine.hpp"
+#include "core/cheat/cheat.hpp"
 #include "utils/logger/logger.hpp"
 
 int main()
@@ -15,9 +18,15 @@ int main()
     goto exit;
   }
 
-  logger::info("Ready");
+  if (!Cheat::init())
+  {
+    logger::fatal("Cheat failed to initialize, cannot continue execution");
+    goto exit;
+  }
 
-  return 0;
+  logger::info("Running main thread");
+
+  Cheat::thread(); // lock
 
 exit:
   std::cout << "Press any key to exit..." << std::endl;
