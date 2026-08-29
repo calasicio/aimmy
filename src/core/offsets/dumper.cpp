@@ -174,6 +174,12 @@ bool Dumper::loadOffsets()
 
   success &= readOffset(
       offsetsData,
+      offsets::C_BaseEntity::m_iHealth,
+      "m_iHealth",
+      {"client.dll", "classes", "C_BaseEntity", "fields", "m_iHealth"});
+
+  success &= readOffset(
+      offsetsData,
       offsets::C_BaseEntity::m_iTeamNum,
       "m_iTeamNum",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_iTeamNum"});

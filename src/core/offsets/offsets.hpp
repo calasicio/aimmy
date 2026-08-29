@@ -30,6 +30,7 @@ namespace offsets
   namespace C_BaseEntity
   {
     std::ptrdiff_t m_pGameSceneNode = 0x330;
+    std::ptrdiff_t m_iHealth = 0x34C;
     std::ptrdiff_t m_iTeamNum = 0x3E7;
   }
 
