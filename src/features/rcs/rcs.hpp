@@ -12,4 +12,5 @@ public:
 private:
   Vector2 oldAimPunch = {0.0, 0.0};
   Vector2 accumulatedError = {0.0, 0.0};
+  Vector2 filteredDeltaPunch = {0.0, 0.0};
 };

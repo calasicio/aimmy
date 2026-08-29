@@ -9,6 +9,8 @@
 const float CORRECTION_FACTOR = 3.37;
 const float YAW_PITCH_FACTOR = 0.022;
 
+const float EMA_ALPHA = 0.1f;
+
 void RCS::update(float dt)
 {
   auto snapshot = Cache::copySnapshot();
@@ -17,6 +19,7 @@ void RCS::update(float dt)
   {
     oldAimPunch = {0.0, 0.0};
     accumulatedError = {0.0, 0.0};
+    filteredDeltaPunch = {0.0, 0.0};
     return;
   }
 
@@ -27,12 +30,24 @@ void RCS::update(float dt)
   {
     oldAimPunch = currentAimPunch;
     accumulatedError = {0.0, 0.0};
+    filteredDeltaPunch = {0.0, 0.0};
     return;
   }
 
-  Vector2 deltaPunch = (currentAimPunch - oldAimPunch);
+  Vector2 rawDeltaPunch = (currentAimPunch - oldAimPunch);
 
-  deltaPunch *= -1.0 * CORRECTION_FACTOR;
+  rawDeltaPunch *= -1.0 * CORRECTION_FACTOR;
+
+  Vector2 deltaPunch = rawDeltaPunch;
+
+  // Low pass filter, Exponential Moving Average (EMA)
+  {
+    Vector2 emaDeltaPunch = {
+        filteredDeltaPunch.x + EMA_ALPHA * (rawDeltaPunch.x - filteredDeltaPunch.x),
+        filteredDeltaPunch.y + EMA_ALPHA * (rawDeltaPunch.y - filteredDeltaPunch.y)};
+    deltaPunch = emaDeltaPunch;
+    filteredDeltaPunch = emaDeltaPunch;
+  }
 
   Vector2 moveAmount = {
       (deltaPunch.y / snapshot.globals.sensitivity) / -YAW_PITCH_FACTOR + accumulatedError.x,
