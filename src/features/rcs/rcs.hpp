@@ -20,4 +20,6 @@ private:
 
 private:
   void resetState(std::optional<Vector2> aimPunch);
+  void decayState();
+  bool isSettled() const;
 };

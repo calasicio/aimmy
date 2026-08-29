@@ -34,6 +34,9 @@ const float MAX_ACCEL = 0.5f;
 const float NOISE_SCALE = 0.12f;
 const float NOISE_CORRELATION = 0.9f;
 
+const float RECOVERY_DECAY = 0.82f;
+const float SETTLED_THRESHOLD = 0.001f;
+
 void RCS::update(float dt)
 {
   auto snapshot = Cache::copySnapshot();
@@ -49,7 +52,30 @@ void RCS::update(float dt)
 
   if (snapshot.localPlayer.shotsFired <= 1)
   {
-    resetState(currentAimPunch);
+    decayState();
+
+    Vector2 deltaPunch = limitedDeltaPunch;
+
+    Vector2 moveAmount = {
+        (deltaPunch.y / snapshot.globals.sensitivity) / -YAW_PITCH_FACTOR + accumulatedError.x,
+        (deltaPunch.x / snapshot.globals.sensitivity) / YAW_PITCH_FACTOR + accumulatedError.y};
+
+    int moveX = static_cast<int>(moveAmount.x);
+    int moveY = static_cast<int>(moveAmount.y);
+
+    accumulatedError.x = moveAmount.x - moveX;
+    accumulatedError.y = moveAmount.y - moveY;
+
+    if (moveX != 0 || moveY != 0)
+    {
+      mouse::moveMouseRelative(moveX, moveY);
+    }
+
+    oldAimPunch = currentAimPunch;
+
+    if (isSettled())
+      resetState(currentAimPunch);
+
     return;
   }
 
@@ -110,6 +136,25 @@ void RCS::update(float dt)
 
   oldAimPunch = currentAimPunch;
 };
+
+void RCS::decayState()
+{
+  filteredDeltaPunch.x *= RECOVERY_DECAY;
+  filteredDeltaPunch.y *= RECOVERY_DECAY;
+  limitedDeltaPunch.x *= RECOVERY_DECAY;
+  limitedDeltaPunch.y *= RECOVERY_DECAY;
+  noiseOffset.x *= RECOVERY_DECAY;
+  noiseOffset.y *= RECOVERY_DECAY;
+}
+
+bool RCS::isSettled() const
+{
+  float residual = std::sqrt(
+      limitedDeltaPunch.x * limitedDeltaPunch.x +
+      limitedDeltaPunch.y * limitedDeltaPunch.y);
+
+  return residual < SETTLED_THRESHOLD;
+}
 
 void RCS::resetState(std::optional<Vector2> aimPunch)
 {
