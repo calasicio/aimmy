@@ -13,6 +13,7 @@ Snapshot Cache::copySnapshot()
 {
   std::lock_guard<std::mutex> lock(getInstance().mtx);
   return {
+      getInstance().globals,
       getInstance().localPlayer,
   };
 }
@@ -27,8 +28,11 @@ bool Cache::updateImpl()
     return false;
   }
 
+  globals.update();
   localPlayer.update();
 
   std::lock_guard<std::mutex>
       lock(mtx);
+
+  return true;
 }

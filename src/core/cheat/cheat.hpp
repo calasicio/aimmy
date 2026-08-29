@@ -1,5 +1,7 @@
 #pragma once
 
+#include "features/rcs/rcs.hpp"
+
 class Cheat
 {
 public:
@@ -25,6 +27,9 @@ private:
   bool initImpl();
   void threadImpl();
   void destroyImpl();
+
+private:
+  RCS rcs;
 
 private:
   bool isRunning = true;

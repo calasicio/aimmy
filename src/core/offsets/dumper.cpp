@@ -146,40 +146,40 @@ bool Dumper::loadOffsets()
       {"client.dll", "classes", "C_CSPlayerPawn", "fields", "m_iShotsFired"});
 
   success &= readOffset(
-      offsetsData,
+      clientDLLData,
       offsets::C_CSPlayerPawn::m_pAimPunchServices,
       "m_pAimPunchServices",
       {"client.dll", "classes", "C_CSPlayerPawn", "fields", "m_pAimPunchServices"});
 
   // CGameSceneNode
   success &= readOffset(
-      offsetsData,
+      clientDLLData,
       offsets::CGameSceneNode::m_vecOrigin,
       "m_vecOrigin",
       {"client.dll", "classes", "CGameSceneNode", "fields", "m_vecOrigin"});
 
   // |- CSkeletonInstance
   success &= readOffset(
-      offsetsData,
+      clientDLLData,
       offsets::CGameSceneNode::CSkeletonInstance::m_modelState,
       "m_modelState",
       {"client.dll", "classes", "CSkeletonInstance", "fields", "m_modelState"});
 
   // C_BaseEntity
   success &= readOffset(
-      offsetsData,
+      clientDLLData,
       offsets::C_BaseEntity::m_pGameSceneNode,
       "m_pGameSceneNode",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_pGameSceneNode"});
 
   success &= readOffset(
-      offsetsData,
+      clientDLLData,
       offsets::C_BaseEntity::m_iHealth,
       "m_iHealth",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_iHealth"});
 
   success &= readOffset(
-      offsetsData,
+      clientDLLData,
       offsets::C_BaseEntity::m_iTeamNum,
       "m_iTeamNum",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_iTeamNum"});

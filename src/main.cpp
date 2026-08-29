@@ -28,6 +28,7 @@ int main()
 
   Cheat::thread(); // lock
 
+  return 0;
 exit:
   std::cout << "Press any key to exit..." << std::endl;
   std::cin.get();

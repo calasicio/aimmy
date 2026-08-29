@@ -46,6 +46,8 @@ void Cheat::threadImpl()
       break;
     }
 
+    rcs.update(dt);
+
     std::this_thread::sleep_until(now + std::chrono::milliseconds(1));
   }
 }

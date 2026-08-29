@@ -103,6 +103,8 @@ bool Engine::awaitProcess()
 
     std::this_thread::sleep_for(5s);
   } while (true);
+
+  return true;
 }
 
 bool Engine::awaitModules()

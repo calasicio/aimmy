@@ -1,15 +1,20 @@
 #pragma once
 
+#include <mutex>
+
 #include "core/engine/classes/player/local_player.hpp"
+#include "core/engine/classes/globals/globals.hpp"
 
 struct Snapshot
 {
+  Globals globals;
   LocalPlayer localPlayer;
 };
 
 class Cache
 {
 public:
+  Globals globals;
   LocalPlayer localPlayer;
 
 public:
