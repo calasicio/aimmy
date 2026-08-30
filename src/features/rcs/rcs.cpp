@@ -1,5 +1,8 @@
 #include "rcs.hpp"
+#include "rcs_constants.hpp"
 
+#include <cmath>
+#include <algorithm>
 #include <string>
 
 #include "core/engine/cache/cache.hpp"
@@ -7,35 +10,11 @@
 #include "utils/mouse/mouse.hpp"
 #include "utils/logger/logger.hpp"
 
-const float CORRECTION_FACTOR = 3.37;
-const float YAW_PITCH_FACTOR = 0.022;
-
-/* EMA_ALPHA: How fast the target moves
- *
- * Value: 1.0 = No smoothing
- *        0.0 = Heavy smoothing, drags behind raw input, ignoring
- *              spikes and only tracking sustained trends
- *
- */
-const float EMA_ALPHA = 0.25f;
-
-/* MAX_ACCEL: How fast the output can chase
- *
- * Value: Infinite = No limit, snaps to whatever EMA target is immediately
- *        0.8      = Output can only change by 0.8 units per frame to the target,
- *                   no matter how far away the target is
- *
- * Controls the maximum frame-to-frame delta of the final correction. Adds inertia.
- * Makes output ramps up gradually
- *
- */
-const float MAX_ACCEL = 0.5f;
-
-const float NOISE_SCALE = 0.12f;
-const float NOISE_CORRELATION = 0.9f;
-
-const float RECOVERY_DECAY = 0.82f;
-const float SETTLED_THRESHOLD = 0.001f;
+inline float smoothstep(float t)
+{
+  t = std::clamp(t, 0.0f, 1.0f);
+  return t * t * (SMOOTHSTEP_A - SMOOTHSTEP_B * t);
+}
 
 void RCS::update(float dt)
 {
@@ -67,9 +46,7 @@ void RCS::update(float dt)
     accumulatedError.y = moveAmount.y - moveY;
 
     if (moveX != 0 || moveY != 0)
-    {
       mouse::moveMouseRelative(moveX, moveY);
-    }
 
     oldAimPunch = currentAimPunch;
 
@@ -80,12 +57,17 @@ void RCS::update(float dt)
   }
 
   Vector2 rawDeltaPunch = (currentAimPunch - oldAimPunch);
-
   rawDeltaPunch = -rawDeltaPunch * CORRECTION_FACTOR;
+
+  // Pattern recall imperfection (slight rhythmic mis-calibration)
+  {
+    float recallError = std::sin(snapshot.localPlayer.shotsFired * RECALL_FREQ) * RECALL_AMP;
+    rawDeltaPunch.y += recallError;
+  }
 
   Vector2 deltaPunch = rawDeltaPunch;
 
-  // Low pass filter, Exponential Moving Average (EMA)
+  // EMA low-pass filter
   {
     deltaPunch = {
         filteredDeltaPunch.x + EMA_ALPHA * (rawDeltaPunch.x - filteredDeltaPunch.x),
@@ -93,28 +75,38 @@ void RCS::update(float dt)
     filteredDeltaPunch = deltaPunch;
   }
 
-  // Acceleration rate limiting
+  // Acceleration rate limiting with smoothstep (per-axis)
   {
     Vector2 desired = deltaPunch;
     Vector2 diff = desired - limitedDeltaPunch;
 
-    float diffLen = diff.length();
-    if (diffLen > MAX_ACCEL && diffLen > 0.0f)
+    float diffLenX = std::abs(diff.x);
+    if (diffLenX > 0.0f)
     {
-      diff = (diff / diffLen) * MAX_ACCEL;
+      float t = (std::min)(diffLenX / MAX_ACCEL_X, 1.0f);
+      float easedT = smoothstep(t);
+      diff.x = (diff.x / diffLenX) * (MAX_ACCEL_X * easedT);
+    }
+
+    float diffLenY = std::abs(diff.y);
+    if (diffLenY > 0.0f)
+    {
+      float t = (std::min)(diffLenY / MAX_ACCEL_Y, 1.0f);
+      float easedT = smoothstep(t);
+      diff.y = (diff.y / diffLenY) * (MAX_ACCEL_Y * easedT);
     }
 
     limitedDeltaPunch += diff;
     deltaPunch = limitedDeltaPunch;
   }
 
-  // Colored Noise
+  // Colored noise
   {
     Vector2 whiteNoise = {
         random::rangeFloat(-1.0f, 1.0f),
         random::rangeFloat(-1.0f, 1.0f)};
 
-    noiseOffset = noiseOffset * NOISE_CORRELATION + whiteNoise * NOISE_SCALE * (1.0f - NOISE_CORRELATION) - noiseOffset * 0.02f;
+    noiseOffset = noiseOffset * NOISE_CORRELATION + whiteNoise * NOISE_SCALE * (1.0f - NOISE_CORRELATION) - noiseOffset * NOISE_MEAN_REVERSION;
 
     deltaPunch += noiseOffset;
   }
@@ -130,9 +122,7 @@ void RCS::update(float dt)
   accumulatedError.y = moveAmount.y - moveY;
 
   if (moveX != 0 || moveY != 0)
-  {
     mouse::moveMouseRelative(moveX, moveY);
-  }
 
   oldAimPunch = currentAimPunch;
 };
@@ -156,16 +146,12 @@ bool RCS::isSettled() const
 void RCS::resetState(std::optional<Vector2> aimPunch)
 {
   if (aimPunch.has_value())
-  {
     oldAimPunch = aimPunch.value();
-  }
   else
-  {
-    oldAimPunch = {0.0, 0.0};
-  }
+    oldAimPunch = {0.0f, 0.0f};
 
-  accumulatedError = {0.0, 0.0};
-  filteredDeltaPunch = {0.0, 0.0};
-  limitedDeltaPunch = {0.0, 0.0};
-  noiseOffset = {0.0, 0.0};
+  accumulatedError = {0.0f, 0.0f};
+  filteredDeltaPunch = {0.0f, 0.0f};
+  limitedDeltaPunch = {0.0f, 0.0f};
+  noiseOffset = {0.0f, 0.0f};
 }
