@@ -62,6 +62,11 @@ public:
     return *this;
   }
 
+  Vector2 operator-() const
+  {
+    return Vector2(-x, -y);
+  }
+
   // Multiplication
   Vector2 operator*(float s) const
   {

@@ -81,7 +81,7 @@ void RCS::update(float dt)
 
   Vector2 rawDeltaPunch = (currentAimPunch - oldAimPunch);
 
-  rawDeltaPunch *= -1.0 * CORRECTION_FACTOR;
+  rawDeltaPunch = -rawDeltaPunch * CORRECTION_FACTOR;
 
   Vector2 deltaPunch = rawDeltaPunch;
 
@@ -139,12 +139,9 @@ void RCS::update(float dt)
 
 void RCS::decayState()
 {
-  filteredDeltaPunch.x *= RECOVERY_DECAY;
-  filteredDeltaPunch.y *= RECOVERY_DECAY;
-  limitedDeltaPunch.x *= RECOVERY_DECAY;
-  limitedDeltaPunch.y *= RECOVERY_DECAY;
-  noiseOffset.x *= RECOVERY_DECAY;
-  noiseOffset.y *= RECOVERY_DECAY;
+  filteredDeltaPunch *= RECOVERY_DECAY;
+  limitedDeltaPunch *= RECOVERY_DECAY;
+  noiseOffset *= RECOVERY_DECAY;
 }
 
 bool RCS::isSettled() const
