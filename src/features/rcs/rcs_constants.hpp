@@ -69,7 +69,7 @@ const float NOISE_CORRELATION = 0.96f;
  * Prevents the correlated noise from meandering too far
  * from the intended aim point over long sprays.
  */
-const float NOISE_MEAN_REVERSION = 0.01f;
+const float NOISE_MEAN_REVERSION = 0.02f;
 
 /* RECOVERY_DECAY: Muscle tension release rate when not firing
  *
@@ -107,7 +107,7 @@ const float RECALL_FREQ = 0.1f;
  *
  * Rhythmic error tied to shot index.
  */
-const float RECALL_AMP = 0.04f;
+const float RECALL_AMP = 0.02f;
 
 /* SMOOTHSTEP_A / SMOOTHSTEP_B: S-curve coefficients
  *

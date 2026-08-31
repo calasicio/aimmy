@@ -9,7 +9,6 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Static MSVC runtime
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 include(FetchContent)
@@ -21,14 +20,27 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(json)
 
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
-  "src/*.cpp"
+add_library(imgui STATIC
+  src/vendor/imgui/imgui.cpp
+  src/vendor/imgui/imgui_draw.cpp
+  src/vendor/imgui/imgui_tables.cpp
+  src/vendor/imgui/imgui_widgets.cpp
+
+  src/vendor/imgui/backends/imgui_impl_dx11.cpp
+  src/vendor/imgui/backends/imgui_impl_win32.cpp
 )
 
-file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS
-  "src/*.hpp"
-  "src/*.h"
+target_include_directories(imgui
+  PUBLIC
+  src/vendor/imgui
 )
+
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "src/*.hpp" "src/*.h")
+
+# CRITICAL: Remove vendor files from executable sources
+list(FILTER SOURCES EXCLUDE REGEX "vendor")
+list(FILTER HEADERS EXCLUDE REGEX "vendor")
 
 add_executable(${PROJECT_NAME}
   ${SOURCES}
@@ -49,6 +61,8 @@ target_compile_options(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
   nlohmann_json::nlohmann_json
+  imgui
+  d3d11
 
   kernel32
   user32
@@ -62,7 +76,6 @@ target_link_libraries(${PROJECT_NAME}
   uuid
 )
 
-# Console application
 if(MSVC)
   target_link_options(${PROJECT_NAME}
     PRIVATE
@@ -70,7 +83,6 @@ if(MSVC)
   )
 endif()
 
-# Output directory
 set_target_properties(${PROJECT_NAME} PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
