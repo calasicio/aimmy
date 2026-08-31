@@ -19,5 +19,7 @@ bool Globals::update()
     sensitivity = sensitivity_;
   }
 
+  this->viewMatrix = process->read<ViewMatrix>(client.base + offsets::dwViewMatrix);
+
   return true;
 }

@@ -56,6 +56,7 @@ bool LocalPlayer::getController()
 bool LocalPlayer::updatePawn()
 {
   auto process = Engine::getProcess();
+  auto client = Engine::getClient();
 
   this->health = process->read<int>(pawn + offsets::C_BaseEntity::m_iHealth);
   this->isAlive = health > 0;
@@ -64,6 +65,13 @@ bool LocalPlayer::updatePawn()
   {
     return true;
   }
+
+  this->viewAngle = process->read<Vector3>(client.base + offsets::dwViewAngles);
+
+  Vector3 floorOrigin = process->read<Vector3>(pawn + offsets::C_BasePlayerPawn::m_vOldOrigin);
+  Vector3 eyeOffset = process->read<Vector3>(pawn + offsets::C_BaseModelEntity::m_vecViewOffset);
+
+  this->cameraPos = floorOrigin + eyeOffset;
 
   this->shotsFired = process->read<int>(pawn + offsets::C_CSPlayerPawn::m_iShotsFired);
 

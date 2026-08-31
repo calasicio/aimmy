@@ -14,6 +14,9 @@ public:
 public:
   int health = 0;
   int shotsFired = 0;
+
+  Vector3 viewAngle = {0, 0, 0};
+  Vector3 cameraPos = {0, 0, 0};
   Vector3 aimPunch = {0, 0, 0};
 
   bool isAlive = false;

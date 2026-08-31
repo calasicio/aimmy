@@ -138,6 +138,32 @@ bool Dumper::loadOffsets()
       "dwSensitivity_sensitivity",
       {"client.dll", "dwSensitivity_sensitivity"});
 
+  success &= readOffset(
+      offsetsData,
+      offsets::dwViewAngles,
+      "dwViewAngles",
+      {"client.dll", "dwViewAngles"});
+
+  success &= readOffset(
+      offsetsData,
+      offsets::dwViewMatrix,
+      "dwViewMatrix",
+      {"client.dll", "dwViewMatrix"});
+
+  // C_BasePlayerPawn
+  success &= readOffset(
+      clientDLLData,
+      offsets::C_BasePlayerPawn::m_vOldOrigin,
+      "m_vOldOrigin",
+      {"client.dll", "classes", "C_BasePlayerPawn", "fields", "m_vOldOrigin"});
+
+  // C_BaseModelEntity
+  success &= readOffset(
+      clientDLLData,
+      offsets::C_BaseModelEntity::m_vecViewOffset,
+      "m_vecViewOffset",
+      {"client.dll", "classes", "C_BaseModelEntity", "fields", "m_vecViewOffset"});
+
   // C_CSPlayerPawn
   success &= readOffset(
       clientDLLData,

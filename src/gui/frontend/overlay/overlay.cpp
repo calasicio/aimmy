@@ -1,5 +1,8 @@
 #include "overlay.hpp"
-#include "imgui.h"
+
+#include <imgui.h>
+
+#include "utils/math/math.hpp"
 
 bool Overlay::init()
 {
@@ -30,14 +33,25 @@ void Overlay::renderFollowRecoil()
 
   auto snapshot = Cache::copySnapshot();
   auto &aimPunch = snapshot.localPlayer.aimPunch;
-  // auto &sensitivity = snapshot.globals.sensitivity;
+  auto &viewAngle = snapshot.localPlayer.viewAngle;
+  auto &viewMatrix = snapshot.globals.viewMatrix;
+  auto &cameraPosition = snapshot.localPlayer.cameraPos;
 
-  ImVec2 center(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
+  Vector3 firingAngles;
+  firingAngles.x = viewAngle.x + (aimPunch.x * 2.0f);
+  firingAngles.y = viewAngle.y + (aimPunch.y * 2.0f);
+  firingAngles.z = 0.0f;
 
-  float offsetX = (aimPunch.y * 0.2) / YAW_PITCH_FACTOR;
-  float offsetY = (aimPunch.x * 0.2) / YAW_PITCH_FACTOR;
+  Vector3 forward = anglesToForward(firingAngles);
 
-  ImVec2 bulletPoint(center.x - offsetX, center.y + offsetY);
+  Vector3 targetWorldPos = {
+      cameraPosition.x + (forward.x * 150.0f),
+      cameraPosition.y + (forward.y * 150.0f),
+      cameraPosition.z + (forward.z * 150.0f)};
 
-  d->AddCircle(bulletPoint, 3.0f, IM_COL32(255, 0, 0, 180), 12, 1.0f);
+  ImVec2 bulletPoint;
+  if (worldToScreen(targetWorldPos, bulletPoint, viewMatrix, io.DisplaySize))
+  {
+    d->AddCircleFilled(bulletPoint, 3.0f, IM_COL32(255, 0, 0, 200), 12);
+  }
 }
