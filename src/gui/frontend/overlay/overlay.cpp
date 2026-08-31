@@ -32,6 +32,13 @@ void Overlay::renderFollowRecoil()
   auto *d = ImGui::GetBackgroundDrawList();
 
   auto snapshot = Cache::copySnapshot();
+  auto &shotsFired = snapshot.localPlayer.shotsFired;
+  
+  if (shotsFired <= 0)
+  {
+    return;
+  }
+
   auto &aimPunch = snapshot.localPlayer.aimPunch;
   auto &viewAngle = snapshot.localPlayer.viewAngle;
   auto &viewMatrix = snapshot.globals.viewMatrix;
@@ -52,6 +59,6 @@ void Overlay::renderFollowRecoil()
   ImVec2 bulletPoint;
   if (worldToScreen(targetWorldPos, bulletPoint, viewMatrix, io.DisplaySize))
   {
-    d->AddCircleFilled(bulletPoint, 3.0f, IM_COL32(255, 0, 0, 200), 12);
+    d->AddCircleFilled(bulletPoint, 3.0f, IM_COL32(0, 0, 255, 255), 12);
   }
 }
