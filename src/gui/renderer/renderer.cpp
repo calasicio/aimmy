@@ -4,32 +4,32 @@
 #include "core/engine/engine.hpp"
 #include "utils/logger/logger.hpp"
 
-bool Renderer::Init()
+bool Renderer::init()
 {
-  return GetInstance().InitImpl();
+  return getInstance().initImpl();
 }
 
-void Renderer::Thread()
+void Renderer::thread()
 {
-  return GetInstance().ThreadImpl();
+  return getInstance().threadImpl();
 }
 
-void Renderer::Destroy()
+void Renderer::destroy()
 {
-  return GetInstance().DestroyImpl();
+  return getInstance().destroyImpl();
 }
 
-bool Renderer::IsOpen()
+bool Renderer::isOpen()
 {
-  return GetInstance().isOpen;
+  return getInstance().isOpen;
 }
 
-bool Renderer::IsFocused()
+bool Renderer::isFocused()
 {
-  return GetInstance().isFocused;
+  return getInstance().isFocused;
 }
 
-bool Renderer::InitImpl()
+bool Renderer::initImpl()
 {
   if (!Window::SpawnWindow())
   {
@@ -68,24 +68,24 @@ bool Renderer::InitImpl()
   return true;
 }
 
-void Renderer::DestroyImpl()
+void Renderer::destroyImpl()
 {
   isRunning = false; // Prepare to stop thread loop
   logger::info("Successfully programed renderer destruction...");
 }
 
-void Renderer::ThreadImpl()
+void Renderer::threadImpl()
 {
   while (isRunning)
   {
-    Render();
+    render();
 
     // If the game is not focused dont do states,
     // or will start focusing game & overlay
-    if (this->isFocused && HandleState())
+    if (this->isFocused && handleState())
       continue; // It will cause flickering if we handle window order after window closes
 
-    HandleWindowOrder();
+    handleWindowOrder();
   }
 
   // Once exited, destroy everything
@@ -94,14 +94,14 @@ void Renderer::ThreadImpl()
   Window::DespawnWindow();
 }
 
-void Renderer::Render()
+void Renderer::render()
 {
   Window::StartRender();
 
   Window::EndRender();
 }
 
-bool Renderer::HandleState()
+bool Renderer::handleState()
 {
   isRunning = Window::shouldRun; // From the window event handler
 
@@ -135,7 +135,7 @@ bool Renderer::HandleState()
   return should_toggle;
 }
 
-bool Renderer::HandleWindowOrder()
+bool Renderer::handleWindowOrder()
 {
   auto p = Engine::getProcess();
 

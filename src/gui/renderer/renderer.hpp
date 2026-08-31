@@ -9,29 +9,29 @@ public:
   Renderer &operator=(const Renderer &) = delete;
   Renderer &operator=(Renderer &&) = delete;
 
-  static bool Init();
-  static void Destroy();
-  static void Thread();
+  static bool init();
+  static void destroy();
+  static void thread();
 
-  static bool IsOpen();
-  static bool IsFocused();
+  static bool isOpen();
+  static bool isFocused();
 
 private:
   Renderer() {};
 
-  static Renderer &GetInstance()
+  static Renderer &getInstance()
   {
     static Renderer i{};
     return i;
   }
 
-  bool InitImpl();
-  void ThreadImpl();
-  void DestroyImpl();
+  bool initImpl();
+  void threadImpl();
+  void destroyImpl();
 
-  void Render();
-  bool HandleState();
-  bool HandleWindowOrder();
+  void render();
+  bool handleState();
+  bool handleWindowOrder();
 
 private:
   bool isRunning = true;
