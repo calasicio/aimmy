@@ -1,7 +1,10 @@
 #include "renderer.hpp"
 #include "window/window.hpp"
 
+#include "gui/frontend/overlay/overlay.hpp"
+
 #include "core/engine/engine.hpp"
+#include "core/cheat/cheat.hpp"
 #include "utils/logger/logger.hpp"
 
 bool Renderer::init()
@@ -19,12 +22,12 @@ void Renderer::destroy()
   return getInstance().destroyImpl();
 }
 
-bool Renderer::isOpen()
+bool Renderer::getIsOpen()
 {
   return getInstance().isOpen;
 }
 
-bool Renderer::isFocused()
+bool Renderer::getIsFocused()
 {
   return getInstance().isFocused;
 }
@@ -49,9 +52,7 @@ bool Renderer::initImpl()
     return false;
   }
 
-  // Menu::Init();
-  // Esp::Init();
-  // Overlays::Init();
+  Overlay::init();
 
   // Focus the game
   SetForegroundWindow(Engine::getProcess()->hwnd_);
@@ -88,6 +89,8 @@ void Renderer::threadImpl()
     handleWindowOrder();
   }
 
+  Cheat::destroy();
+
   // Once exited, destroy everything
   Window::DestroyImGui();
   Window::DestroyDevice();
@@ -98,6 +101,8 @@ void Renderer::render()
 {
   Window::StartRender();
 
+  Overlay::render();
+
   Window::EndRender();
 }
 
@@ -105,34 +110,12 @@ bool Renderer::handleState()
 {
   isRunning = Window::shouldRun; // From the window event handler
 
-  static bool was_holding = false;
-
-  bool pressed_insert = (GetAsyncKeyState(VK_INSERT) & 0x8000);
-  bool pressed_rshift = (GetAsyncKeyState(VK_RSHIFT) & 0x8000);
-
   bool pressed_end = (GetAsyncKeyState(VK_END) & 0x8000);
-
-  bool should_toggle = !was_holding && (pressed_insert || pressed_rshift);
-
-  if (should_toggle || pressed_end)
-  { // Toggle when pressing end to trigger the config save :v
-    this->isOpen = !isOpen;
-
-    // Release cursor when opening the menu
-    // Sometimes flashes the render as its handling the window order
-    if (this->isOpen)
-      SetForegroundWindow(Window::hwnd);
-    else
-      SetForegroundWindow(Engine::getProcess()->hwnd_);
-
-    Window::SetClickthrough(Window::hwnd, !this->isOpen);
-  }
 
   if (pressed_end)
     this->isRunning = false;
 
-  was_holding = pressed_insert || pressed_rshift;
-  return should_toggle;
+  return false;
 }
 
 bool Renderer::handleWindowOrder()

@@ -13,8 +13,8 @@ public:
   static void destroy();
   static void thread();
 
-  static bool isOpen();
-  static bool isFocused();
+  static bool getIsOpen();
+  static bool getIsFocused();
 
 private:
   Renderer() {};

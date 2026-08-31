@@ -5,6 +5,7 @@
 
 #include "core/engine/engine.hpp"
 #include "core/cheat/cheat.hpp"
+#include "gui/renderer/renderer.hpp"
 #include "utils/logger/logger.hpp"
 
 int main()
@@ -24,9 +25,13 @@ int main()
     goto exit;
   }
 
-  logger::info("Running main thread");
+  if (!Renderer::init())
+  {
+    logger::fatal("Renderer failed to initialize, cannot continue execution");
+    goto exit;
+  }
 
-  Cheat::thread(); // lock
+  Renderer::thread();
 
   return 0;
 exit:

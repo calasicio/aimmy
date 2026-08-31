@@ -26,6 +26,9 @@ bool Cheat::initImpl()
   SetForegroundWindow(Engine::getProcess()->hwnd_);
 
   logger::info("Succesfully initialized cheat...");
+
+  std::thread(&Cheat::threadImpl, this).detach();
+
   return true;
 }
 
@@ -39,12 +42,6 @@ void Cheat::threadImpl()
 
     const float dt = std::chrono::duration<float>(now - lastFrame).count();
     lastFrame = now;
-
-    if (GetAsyncKeyState(VK_END) & 0x8000)
-    {
-      isRunning = false;
-      break;
-    }
 
     rcs.update(dt);
 
