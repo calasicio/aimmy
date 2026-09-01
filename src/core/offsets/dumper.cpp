@@ -17,8 +17,11 @@ bool Dumper::init()
 
 bool Dumper::initImpl()
 {
-  logger::info("Finding `c_hud` offsets...");
+  logger::info("Finding `c_hud` offset...");
   findCHud();
+
+  logger::info("Finding `VEngineCvar` offset...");
+  findVEngineCVar();
 
   if (!runDumper())
     return false;
@@ -93,6 +96,52 @@ bool Dumper::findCHud()
   }
 
   return true;
+}
+
+bool Dumper::findVEngineCVar()
+{
+  auto process = Engine::getProcess();
+  auto tier0 = Engine::getTier0();
+
+  // 4C 8B 0D ?? ?? ?? ?? 4C 8B D2 4C 8B D9 4D 85 C9 74 2E
+  std::vector<uint8_t> signature = {
+      0x4C, 0x8B, 0x0D, 0x00, 0x00, 0x00, 0x00, // mov r9, qword ptr [DAT_1803a2ea0]
+      0x4C, 0x8B, 0xD2,                         // mov r10, rdx
+      0x4C, 0x8B, 0xD9,                         // mov r11, rcx
+      0x4D, 0x85, 0xC9,                         // test r9, r9
+      0x74, 0x2E                                // jz LAB_18020b2f0
+  };
+  std::vector<bool> mask = {
+      true, true, true, false, false, false, false,
+      true, true, true,
+      true, true, true,
+      true, true, true,
+      true, true};
+
+  std::uintptr_t signatureAddress = process->FindSignature(tier0, signature, mask);
+
+  if (signatureAddress != 0)
+  {
+    uintptr_t displacementAddress = signatureAddress + 3;
+
+    int32_t relativeOffset = 0;
+    process->read_raw(displacementAddress, &relativeOffset, sizeof(relativeOffset));
+
+    uintptr_t absoluteInterfaceRegHead = displacementAddress + 4 + relativeOffset;
+
+    offsets::VEngineCvar = absoluteInterfaceRegHead - tier0.base;
+
+    char hexStr[32];
+    sprintf_s(hexStr, "0x%llX", offsets::VEngineCvar);
+    logger::info(std::string("Dynamically resolved fresh VEngineCvar interface register offset at: ") + hexStr);
+  }
+  else
+  {
+    logger::error(
+        "Failed to find `CreateInterface` registry array signature block inside tier0 memory maps.");
+
+    return false;
+  }
 }
 
 bool Dumper::loadOffsets()

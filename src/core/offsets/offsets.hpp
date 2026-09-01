@@ -13,6 +13,8 @@ namespace offsets
   inline std::ptrdiff_t dwViewAngles = 0x23DC2F8;
   inline std::ptrdiff_t dwViewMatrix = 0x23CB830;
 
+  inline std::ptrdiff_t VEngineCvar = 0x3A2EA0;
+
   inline std::ptrdiff_t c_hud = 0x2436710;
 
   inline std::ptrdiff_t dwWindowHeight = 0x9118D4;
