@@ -19,7 +19,12 @@ bool Game::update()
     sensitivity = sensitivity_;
   }
 
+  // Update view matrix
   this->viewMatrix = process->read<ViewMatrix>(client.base + offsets::dwViewMatrix);
+
+  // Update entity list and list entry
+  this->entityList = process->read<uintptr_t>(client.base + offsets::dwEntityList);
+  this->listEntry = process->read<uintptr_t>(this->entityList + 0x10);
 
   return true;
 }
