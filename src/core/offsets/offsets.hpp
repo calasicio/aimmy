@@ -15,6 +15,9 @@ namespace offsets
 
   inline std::ptrdiff_t c_hud = 0x2436710;
 
+  inline std::ptrdiff_t dwWindowHeight = 0x9118D4;
+  inline std::ptrdiff_t dwWindowWidth = 0x9118D0;
+
   namespace CCSGO_HudTree
   {
     constexpr std::uintptr_t Base = 0x258;  // DAT_182436710 + 600 (600 dec = 0x258)

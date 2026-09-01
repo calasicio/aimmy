@@ -196,6 +196,18 @@ bool Dumper::loadOffsets()
       "dwViewMatrix",
       {"client.dll", "dwViewMatrix"});
 
+  success &= readOffset(
+      offsetsData,
+      offsets::dwWindowHeight,
+      "dwWindowHeight",
+      {"engine2.dll", "dwWindowHeight"});
+
+  success &= readOffset(
+      offsetsData,
+      offsets::dwWindowWidth,
+      "dwWindowWidth",
+      {"engine2.dll", "dwWindowWidth"});
+
   // C_BasePlayerPawn
   success &= readOffset(
       clientDLLData,
