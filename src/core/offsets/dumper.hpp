@@ -15,8 +15,7 @@ private:
   }
 
   bool initImpl();
-
   bool runDumper();
-
+  bool findCHud();
   bool loadOffsets();
 };

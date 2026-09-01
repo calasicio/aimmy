@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "offsets.hpp"
+#include "core/engine/engine.hpp"
 #include "utils/filesystem/filesystem.hpp"
 #include "utils/json.hpp"
 #include "utils/logger/logger.hpp"
@@ -16,6 +17,9 @@ bool Dumper::init()
 
 bool Dumper::initImpl()
 {
+  logger::info("Finding `c_hud` offsets...");
+  findCHud();
+
   if (!runDumper())
     return false;
 
@@ -45,9 +49,45 @@ bool readOffset(
   if (!json_utils::read(data, destination, path))
   {
     logger::error(
-        std::format(
-            "Offset `{}` was not found or is invalid",
-            name));
+        std::string("Offset `") + std::string(name) + "` was not found or is invalid");
+
+    return false;
+  }
+
+  return true;
+}
+
+bool Dumper::findCHud()
+{
+  auto process = Engine::getProcess();
+  auto client = Engine::getClient();
+
+  // 48 89 5C 24 20 57 48 83 EC 20 0F B6 DA 48 8B F9
+  std::vector<uint8_t> signature = {0x48, 0x89, 0x5C, 0x24, 0x20, 0x57, 0x48, 0x83, 0xEC, 0x20, 0x0F, 0xB6, 0xDA, 0x48, 0x8B, 0xF9};
+  std::vector<bool> mask = {true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true};
+
+  std::uintptr_t signature_address = process->FindSignature(client, signature, mask);
+
+  if (signature_address != 0)
+  {
+    logger::info("Found HUD manager function at: " + std::to_string(signature_address));
+
+    std::uintptr_t displacementAddress = signature_address + 0xEF + 3;
+
+    int32_t relativeOffset = process->read<int32_t>(displacementAddress);
+
+    uintptr_t cHudAbsoluteAddress = displacementAddress + 4 + relativeOffset;
+
+    offsets::c_hud = cHudAbsoluteAddress - client.base;
+
+    char hexStr[32];
+    sprintf_s(hexStr, "0x%llX", offsets::c_hud);
+    logger::info(std::string("Offset `c_hud` found at ") + hexStr);
+  }
+  else
+  {
+    logger::error(
+        "Could not find `c_hud` offset, using default offset value. Radar may or may not work.");
 
     return false;
   }
