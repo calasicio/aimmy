@@ -15,23 +15,24 @@ namespace offsets
 
   inline std::ptrdiff_t c_hud = 0x2436710;
 
-  namespace HudTree
+  namespace CCSGO_HudTree
   {
     constexpr std::uintptr_t Base = 0x258;  // DAT_182436710 + 600 (600 dec = 0x258)
     constexpr std::uintptr_t Count = 0x264; // *(uint *)(DAT_182436710 + 0x264)
     constexpr std::uintptr_t Pool = 0x268;  // *(longlong *)(DAT_182436710 + 0x268)
   }
 
-  namespace HudRadar
+  // Just decompile the game and look at the CCSGO_HudRadar struct, the offsets are there
+  namespace CCSGO_HudRadar
   {
     constexpr std::uintptr_t IsRound = 0x60;
-    constexpr std::uintptr_t MapTexturePosition = 0x238;
-    constexpr std::uintptr_t VisibilitySizeMax = 0x244;
-    constexpr std::uintptr_t VisibilitySize = 0x248;
-    constexpr std::uintptr_t MapTextureScale = 0x25C;
-    constexpr std::uintptr_t MaxVisibilitySquared = 0x260;
-    constexpr std::uintptr_t OriginTextureDiff = 0x278;
-    constexpr std::uintptr_t RadarScaleTail = 0x18034;
+    constexpr std::uintptr_t MapTexturePosition = 0x190;
+    constexpr std::uintptr_t VisibilitySizeMax = 0x19C;
+    constexpr std::uintptr_t VisibilitySize = 0x1A0;
+    constexpr std::uintptr_t MapTextureScale = 0x1B4;
+    constexpr std::uintptr_t MaxVisibilitySquared = 0x1B8;
+    constexpr std::uintptr_t OriginTextureDiff = 0x1D0;
+    constexpr std::uintptr_t RadarScale = 0x17F8C;
   }
 
   namespace CGlobalVarsBase
