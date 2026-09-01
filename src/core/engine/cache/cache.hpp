@@ -1,11 +1,13 @@
 #pragma once
 
 #include <mutex>
+#include <vector>
 
 #include "core/engine/classes/game/game.hpp"
 #include "core/engine/classes/globals/globals.hpp"
 #include "core/engine/classes/hud/hud.hpp"
 #include "core/engine/classes/player/local_player.hpp"
+#include "core/engine/classes/player/player.hpp"
 
 struct Snapshot
 {
@@ -13,6 +15,7 @@ struct Snapshot
   Globals globals;
   Hud hud;
   LocalPlayer localPlayer;
+  std::vector<Player> players;
 };
 
 class Cache
@@ -22,6 +25,7 @@ public:
   Globals globals;
   Hud hud;
   LocalPlayer localPlayer;
+  std::vector<Player> players;
 
 public:
   static Cache &getInstance()
