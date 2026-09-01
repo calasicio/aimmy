@@ -129,26 +129,32 @@ ProcessModule pProcess::GetModule(const char *lModule)
   int wideCharLength = MultiByteToWideChar(CP_UTF8, 0, lModule, -1, nullptr, 0);
   if (wideCharLength > 0)
   {
-    wideModule.resize(wideCharLength);
+    wideModule.resize(wideCharLength - 1);
     MultiByteToWideChar(CP_UTF8, 0, lModule, -1, &wideModule[0], wideCharLength);
   }
 
-  HANDLE handle_module = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid_);
+  HANDLE handle_module = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid_);
+  if (handle_module == INVALID_HANDLE_VALUE) return {0, 0};
+
   MODULEENTRY32W module_entry_{};
   module_entry_.dwSize = sizeof(MODULEENTRY32W);
 
-  do
+  if (Module32FirstW(handle_module, &module_entry_))
   {
-    if (!wcscmp(module_entry_.szModule, wideModule.c_str()))
+    do
     {
-      CloseHandle(handle_module);
-      return {(DWORD_PTR)module_entry_.modBaseAddr, module_entry_.dwSize};
-    }
-  } while (Module32NextW(handle_module, &module_entry_));
+      if (_wcsicmp(module_entry_.szModule, wideModule.c_str()) == 0)
+      {
+        CloseHandle(handle_module);
+        return {(DWORD_PTR)module_entry_.modBaseAddr, module_entry_.modBaseSize};
+      }
+    } while (Module32NextW(handle_module, &module_entry_));
+  }
 
   CloseHandle(handle_module);
   return {0, 0};
 }
+
 
 LPVOID pProcess::Allocate(size_t size_in_bytes)
 {
