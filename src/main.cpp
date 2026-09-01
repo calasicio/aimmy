@@ -1,83 +1,40 @@
 #include <iostream>
-#include <thread>
-#include <chrono>
 #include <Windows.h>
+#include <chrono>
+#include <thread>
 
-#include "core/memory.hpp"
-#include "game/offsets.hpp"
-#include "game/structures.hpp"
-
-#include "features/rcs.hpp"
-
-#include "utils/config.hpp"
-
-bool isApplicationRunning = true;
+#include "core/engine/engine.hpp"
+#include "core/cheat/cheat.hpp"
+#include "gui/renderer/renderer.hpp"
+#include "utils/logger/logger.hpp"
 
 int main()
 {
+  if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
+    logger::warning("Could not set application process priority to HIGH");
 
-  std::cout << "[Aimmy] >> INFO: Setting up core... \n\n";
-
-  Config::LoadSettings("settings.json");
-  std::cout << "[Aimmy] >> INFO: Settings loaded.\n";
-  std::cout << "               | RCS Enabled: " << (Config::rcsEnabled ? "true" : "false") << "\n";
-  std::cout << "               | RCS Humanizer Enabled: " << (Config::rcsHumanizerEnabled ? "true" : "false") << "\n";
-  std::cout << "               | RCS Control Level: " << Config::rcsControl << "\n";
-  std::cout << "               | RCS Reaction Speed: " << Config::rcsReactionSpeed << "\n";
-  std::cout << "               | RCS Smoothness: " << Config::rcsSmoothness << "\n";
-  std::cout << "               | RCS Stability: " << Config::rcsStability << "\n";
-  std::cout << "               | RCS Aggression: " << Config::rcsAggression << "\n";
-
-  if (!g_pProcess.AttachProcess("cs2.exe"))
+  if (!Engine::init())
   {
-    std::cerr << "[Aimmy] >> ERR: Could not locate or hook onto cs2.exe.\n";
-    std::cout << "[Aimmy] >> INFO: Make sure Counter-Strike 2 is fully loaded before launching.\n";
-    std::cin.get();
-    return 1;
+    logger::fatal("Engine failed to initialize, cannot continue execution");
+    goto exit;
   }
 
-  std::uintptr_t clientBaseAddress = g_pProcess.GetModule("client.dll").base;
-  if (!clientBaseAddress)
+  if (!Cheat::init())
   {
-    std::cerr << "[Aimmy] >> ERR: Failed to find client.dll memory spaces.\n";
-    g_pProcess.Close();
-    std::cin.get();
-    return 1;
+    logger::fatal("Cheat failed to initialize, cannot continue execution");
+    goto exit;
   }
 
-  std::cout << "[Aimmy] >> INFO: Connected successfully to CS2 Process Engine Handle!\n";
-  std::cout << "[Aimmy] >> INFO: Found client.dll address at base boundary: 0x" << std::hex << clientBaseAddress << std::dec << "\n\n";
-
-  std::cout << "--------------------------------------------------\n";
-  std::cout << "                   HOW TO OPERATE                 \n";
-  std::cout << "--------------------------------------------------\n";
-  std::cout << "[*] RECOIL COMPENSATION SYSTEM: Automatic compensation of recoil patterns.\n";
-  std::cout << "[*] EXIT SYSTEM: Press the physical [END] keyboard key to close.\n";
-  std::cout << "--------------------------------------------------\n\n";
-
-  while (isApplicationRunning)
+  if (!Renderer::init())
   {
-    if (GetAsyncKeyState(VK_END) & 0x8000)
-    {
-      isApplicationRunning = false;
-      break;
-    }
-
-    std::uintptr_t localPlayerPawnPointer = g_pProcess.read<std::uintptr_t>(
-        clientBaseAddress + cs2_dumper::offsets::client_dll::dwLocalPlayerPawn);
-
-    if (localPlayerPawnPointer != 0)
-    {
-      features::ExecuteRCS(localPlayerPawnPointer, clientBaseAddress);
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    logger::fatal("Renderer failed to initialize, cannot continue execution");
+    goto exit;
   }
 
-  std::cout << "[Aimmy] >> INFO: Closing external runtime environments cleanly...\n";
+  Renderer::thread();
 
-  g_pProcess.Close();
-
-  std::cout << "[Aimmy] >> INFO: Memory link fully broken. Closing helper tool safely.\n";
   return 0;
+exit:
+  std::cout << "Press any key to exit..." << std::endl;
+  std::cin.get();
 }

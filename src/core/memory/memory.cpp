@@ -1,6 +1,5 @@
 #include "memory.hpp"
 #include <tlhelp32.h>
-#include <memory>
 
 uint32_t pProcess::FindProcessIdByProcessName(const char *ProcessName)
 {
@@ -228,9 +227,5 @@ uintptr_t pProcess::FindCodeCave(uint32_t length_in_bytes)
 
 void pProcess::Close()
 {
-  if (handle_)
-  {
-    CloseHandle(handle_);
-    handle_ = nullptr;
-  }
+  CloseHandle(handle_);
 }

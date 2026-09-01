@@ -1,3 +1,6 @@
-aimmy.tar
 !build
 build/*
+
+!runtime
+runtime/*
+!runtime/cs2-dumper.exe
