@@ -16,6 +16,7 @@ public:
   static bool init();
   static ProcessModule getClient();
   static ProcessModule getEngine();
+  static ProcessModule getTier0();
   static std::shared_ptr<pProcess> getProcess(); // Refactor this so its easier to access
 private:
   Engine() {};
@@ -37,4 +38,5 @@ private:
   std::shared_ptr<pProcess> process;
   ProcessModule client;
   ProcessModule engine;
+  ProcessModule tier0;
 };

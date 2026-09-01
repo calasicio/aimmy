@@ -24,6 +24,11 @@ ProcessModule Engine::getEngine()
   return getInstance().engine;
 }
 
+ProcessModule Engine::getTier0()
+{
+  return getInstance().tier0;
+}
+
 std::shared_ptr<pProcess> Engine::getProcess()
 {
   return getInstance().process;
@@ -128,8 +133,9 @@ bool Engine::awaitModules()
   {
     this->client = process->GetModule("client.dll");
     this->engine = process->GetModule("engine2.dll");
+    this->tier0 = process->GetModule("tier0.dll");
 
-    if (this->client.base && this->engine.base)
+    if (this->client.base && this->engine.base && this->tier0.base)
       break;
 
     static int attempts = 0;
