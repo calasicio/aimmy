@@ -191,9 +191,9 @@ uintptr_t pProcess::FindSignature(ProcessModule target_module, std::vector<uint8
 
   auto data = std::make_unique<uint8_t[]>(target_module.size);
 
-  if (!ReadProcessMemory(this->handle_, (void *)(target_module.base), data.get(), 0xFFFFFFF, NULL))
+  if (!ReadProcessMemory(this->handle_, (void *)(target_module.base), data.get(), target_module.size, NULL))
   {
-    return NULL;
+    return 0;
   }
 
   for (uintptr_t i = 0; i <= target_module.size - signature.size(); i++)
