@@ -71,6 +71,12 @@ namespace offsets
     inline std::ptrdiff_t m_pGameSceneNode = 0x330;
     inline std::ptrdiff_t m_iHealth = 0x34C;
     inline std::ptrdiff_t m_iTeamNum = 0x3E7;
+
+    namespace CBasePlayerController
+    {
+      inline std::ptrdiff_t m_hPawn = 0x6BC;
+      inline std::ptrdiff_t m_bIsLocalPlayerController = 0x788;
+    }
   }
 
 }

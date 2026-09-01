@@ -256,5 +256,18 @@ bool Dumper::loadOffsets()
       "m_iTeamNum",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_iTeamNum"});
 
+  // |- CBasePlayerController
+  success &= readOffset(
+      clientDLLData,
+      offsets::C_BaseEntity::CBasePlayerController::m_hPawn,
+      "m_hPawn",
+      {"client.dll", "classes", "CBasePlayerController", "fields", "m_hPawn"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::C_BaseEntity::CBasePlayerController::m_bIsLocalPlayerController,
+      "m_bIsLocalPlayerController",
+      {"client.dll", "classes", "CBasePlayerController", "fields", "m_bIsLocalPlayerController"});
+
   return success;
 }
