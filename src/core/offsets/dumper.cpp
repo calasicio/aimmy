@@ -110,6 +110,12 @@ bool Dumper::loadOffsets()
   // Base Offsets
   success &= readOffset(
       offsetsData,
+      offsets::dwGlobalVars,
+      "dwGlobalVars",
+      {"client.dll", "dwGlobalVars"});
+
+  success &= readOffset(
+      offsetsData,
       offsets::dwLocalPlayerController,
       "dwLocalPlayerController",
       {"client.dll", "dwLocalPlayerController"});

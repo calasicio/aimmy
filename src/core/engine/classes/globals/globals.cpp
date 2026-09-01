@@ -8,18 +8,17 @@ bool Globals::update()
   auto process = Engine::getProcess();
   auto client = Engine::getClient();
 
-  float sensitivity_ = process->read<float>(client.base + offsets::dwSensitivity + offsets::dwSensitivity_sensitivity);
+  this->address = process->read<std::uintptr_t>(client.base + offsets::dwGlobalVars);
 
-  if (sensitivity_ <= 0.0 || !sensitivity_)
-  {
-    sensitivity = 1.0;
-  }
-  else
-  {
-    sensitivity = sensitivity_;
-  }
+  if (!this->address)
+    return false;
 
-  this->viewMatrix = process->read<ViewMatrix>(client.base + offsets::dwViewMatrix);
+  this->maxClients = process->read<int>(this->address + offsets::CGlobalVarsBase::m_iMaxClients);
+
+  auto mapNameAddress = process->read<DWORD64>(this->address + offsets::CGlobalVarsBase::m_strMapName);
+
+  if (!process->read_raw(mapNameAddress, this->mapName, sizeof(this->mapName)))
+    return false;
 
   return true;
 }

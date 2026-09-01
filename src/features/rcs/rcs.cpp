@@ -36,8 +36,8 @@ void RCS::update(float dt)
     Vector2 deltaPunch = limitedDeltaPunch;
 
     Vector2 moveAmount = {
-        (deltaPunch.y / snapshot.globals.sensitivity) / -YAW_PITCH_FACTOR + accumulatedError.x,
-        (deltaPunch.x / snapshot.globals.sensitivity) / YAW_PITCH_FACTOR + accumulatedError.y};
+        (deltaPunch.y / snapshot.game.sensitivity) / -YAW_PITCH_FACTOR + accumulatedError.x,
+        (deltaPunch.x / snapshot.game.sensitivity) / YAW_PITCH_FACTOR + accumulatedError.y};
 
     int moveX = static_cast<int>(moveAmount.x);
     int moveY = static_cast<int>(moveAmount.y);
@@ -112,8 +112,8 @@ void RCS::update(float dt)
   }
 
   Vector2 moveAmount = {
-      (deltaPunch.y / snapshot.globals.sensitivity) / -YAW_PITCH_FACTOR + accumulatedError.x,
-      (deltaPunch.x / snapshot.globals.sensitivity) / YAW_PITCH_FACTOR + accumulatedError.y};
+      (deltaPunch.y / snapshot.game.sensitivity) / -YAW_PITCH_FACTOR + accumulatedError.x,
+      (deltaPunch.x / snapshot.game.sensitivity) / YAW_PITCH_FACTOR + accumulatedError.y};
 
   int moveX = static_cast<int>(moveAmount.x);
   int moveY = static_cast<int>(moveAmount.y);

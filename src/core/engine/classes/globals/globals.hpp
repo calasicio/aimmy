@@ -12,6 +12,10 @@ public:
   bool update();
 
 public:
-  float sensitivity = 1.0;
-  ViewMatrix viewMatrix;
+  int maxClients;
+  char mapName[32];
+  bool inMatch;
+
+private:
+  std::uintptr_t address;
 };

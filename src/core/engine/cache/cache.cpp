@@ -13,6 +13,7 @@ Snapshot Cache::copySnapshot()
 {
   std::lock_guard<std::mutex> lock(getInstance().mtx);
   return {
+      getInstance().game,
       getInstance().globals,
       getInstance().localPlayer,
   };
@@ -28,6 +29,7 @@ bool Cache::updateImpl()
     return false;
   }
 
+  game.update();
   globals.update();
   localPlayer.update();
 

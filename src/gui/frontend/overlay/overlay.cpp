@@ -41,7 +41,7 @@ void Overlay::renderFollowRecoil()
 
   auto &aimPunch = snapshot.localPlayer.aimPunch;
   auto &viewAngle = snapshot.localPlayer.viewAngle;
-  auto &viewMatrix = snapshot.globals.viewMatrix;
+  auto &viewMatrix = snapshot.game.viewMatrix;
   auto &cameraPosition = snapshot.localPlayer.cameraPos;
 
   Vector3 firingAngles;

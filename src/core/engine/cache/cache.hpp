@@ -2,11 +2,13 @@
 
 #include <mutex>
 
-#include "core/engine/classes/player/local_player.hpp"
+#include "core/engine/classes/game/game.hpp"
 #include "core/engine/classes/globals/globals.hpp"
+#include "core/engine/classes/player/local_player.hpp"
 
 struct Snapshot
 {
+  Game game;
   Globals globals;
   LocalPlayer localPlayer;
 };
@@ -14,6 +16,7 @@ struct Snapshot
 class Cache
 {
 public:
+  Game game;
   Globals globals;
   LocalPlayer localPlayer;
 
