@@ -50,7 +50,7 @@ public:
   LPVOID Allocate(size_t size_in_bytes);
   uintptr_t FindCodeCave(uint32_t length_in_bytes);
   uintptr_t FindSignature(std::vector<uint8_t> signature);
-  uintptr_t FindSignature(ProcessModule target_module, std::vector<uint8_t> signature);
+  uintptr_t FindSignature(ProcessModule target_module, std::vector<uint8_t> signature, const std::vector<bool>& mask);
 
   template <class T>
   uintptr_t ReadOffsetFromSignature(std::vector<uint8_t> signature, uint8_t offset) // offset example: "FF 05 ->22628B01<-" offset is 2

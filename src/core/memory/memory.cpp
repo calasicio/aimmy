@@ -184,33 +184,40 @@ uintptr_t pProcess::FindSignature(std::vector<uint8_t> signature)
   return 0x0;
 }
 
-uintptr_t pProcess::FindSignature(ProcessModule target_module, std::vector<uint8_t> signature)
+uintptr_t pProcess::FindSignature(ProcessModule target_module, std::vector<uint8_t> signature, const std::vector<bool>& mask)
 {
-  std::unique_ptr<uint8_t[]> data;
-  data = std::make_unique<uint8_t[]>(0xFFFFFFF);
+  if (target_module.base == 0 || target_module.size == 0)
+    return 0;
+
+  auto data = std::make_unique<uint8_t[]>(target_module.size);
 
   if (!ReadProcessMemory(this->handle_, (void *)(target_module.base), data.get(), 0xFFFFFFF, NULL))
   {
     return NULL;
   }
 
-  for (uintptr_t i = 0; i < 0xFFFFFFF; i++)
+  for (uintptr_t i = 0; i <= target_module.size - signature.size(); i++)
   {
+    bool found = true;
     for (uintptr_t j = 0; j < signature.size(); j++)
     {
-      if (signature.at(j) == 0x00)
+      if (!mask[j])
         continue;
 
-      if (*reinterpret_cast<uint8_t *>(reinterpret_cast<uintptr_t>(&data[i + j])) == signature.at(j))
+      if (data[i + j] != signature[j])
       {
-        if (j == signature.size() - 1)
-          return this->base_client_.base + i;
-        continue;
+        found = false;
+        break;
       }
-      break;
+    }
+
+    if (found)
+    {
+      return target_module.base + i;
     }
   }
-  return 0x0;
+
+  return 0;
 }
 
 uintptr_t pProcess::FindCodeCave(uint32_t length_in_bytes)
