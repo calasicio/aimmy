@@ -55,6 +55,16 @@ bool Engine::initImpl()
     logger::info("Using default offsets");
   }
 
+  if (Cache::init())
+  {
+    logger::info("Successfully initialized cache");
+  }
+  else
+  {
+    logger::fatal("Failed to initialize cache");
+    return false;
+  }
+
   std::thread(&Engine::thread, this).detach();
 
   logger::info("Successfully initialized engine...");

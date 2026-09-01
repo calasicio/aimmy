@@ -4,6 +4,11 @@
 
 #include "core/engine/engine.hpp"
 
+bool Cache::init()
+{
+  return getInstance().initImpl();
+}
+
 bool Cache::update()
 {
   return getInstance().updateImpl();
@@ -15,8 +20,16 @@ Snapshot Cache::copySnapshot()
   return {
       getInstance().game,
       getInstance().globals,
+      getInstance().hud,
       getInstance().localPlayer,
   };
+}
+
+bool Cache::initImpl()
+{
+  hud.init();
+
+  return true;
 }
 
 bool Cache::updateImpl()
@@ -31,6 +44,7 @@ bool Cache::updateImpl()
 
   game.update();
   globals.update();
+  hud.update();
   localPlayer.update();
 
   std::lock_guard<std::mutex>
