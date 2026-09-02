@@ -20,13 +20,91 @@ bool Dumper::initImpl()
   logger::info("Finding `c_hud` offset...");
   findCHud();
 
-  logger::info("Finding `VEngineCvar` offset...");
-  findVEngineCVar();
+  logger::info("Finding `CCVar` offset...");
+  findCCVar();
 
   if (!runDumper())
     return false;
 
   return loadOffsets();
+}
+
+bool Dumper::findCHud()
+{
+  auto process = Engine::getProcess();
+  auto client = Engine::getClient();
+
+  // 48 89 5C 24 20 57 48 83 EC 20 0F B6 DA 48 8B F9
+  std::vector<uint8_t> signature = {0x48, 0x89, 0x5C, 0x24, 0x20, 0x57, 0x48, 0x83, 0xEC, 0x20, 0x0F, 0xB6, 0xDA, 0x48, 0x8B, 0xF9};
+  std::vector<bool> mask = {true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true};
+
+  std::uintptr_t sigAddr = process->FindSignature(client, signature, mask);
+
+  if (sigAddr != 0)
+  {
+    logger::info("Found HUD manager function at: " + std::to_string(sigAddr));
+
+    std::uintptr_t displacementAddress = sigAddr + 0xEF + 3;
+
+    int32_t relativeOffset = process->read<int32_t>(displacementAddress);
+
+    uintptr_t cHudAbsoluteAddress = displacementAddress + 4 + relativeOffset;
+
+    offsets::c_hud = cHudAbsoluteAddress - client.base;
+
+    char hexStr[32];
+    sprintf_s(hexStr, "0x%llX", offsets::c_hud);
+    logger::info(std::string("Offset `c_hud` found at ") + hexStr);
+  }
+  else
+  {
+    logger::error(
+        "Could not find `c_hud` offset, using default offset value. Radar may or may not work.");
+
+    return false;
+  }
+
+  return true;
+}
+
+/*
+Module: tier0.dll
+Pattern: 4C 8D 3D ? ? ? ? 0F 28 45
+Type: RIP-relative LEA (lea r15, [rip+...])
+Displacement offset: +3
+Instruction size: 7
+*/
+bool Dumper::findCCVar()
+{
+  auto process = Engine::getProcess();
+  auto tier0 = Engine::getTier0();
+
+  std::vector<uint8_t> signature = {0x4C, 0x8D, 0x3D, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x28, 0x45};
+  std::vector<bool> mask = {true, true, true, false, false, false, false, true, true, true};
+
+  std::uintptr_t sigAddr = process->FindSignature(tier0, signature, mask);
+
+  if (sigAddr != 0)
+  {
+    int32_t rel = 0;
+    process->read_raw(sigAddr + 3, &rel, sizeof(rel));
+    uintptr_t cvarIf = sigAddr + 7 + rel;
+
+    offsets::CCVars = cvarIf - tier0.base;
+
+    char hexStr[32];
+    sprintf_s(hexStr, "0x%llX", offsets::CCVars);
+    logger::info(std::string("Offset `CCVar` found at ") + hexStr);
+  }
+  else
+  {
+    logger::error(
+        "Could not find `CCVar` offset. This is a critical error and the program will likely crash.");
+
+    return false;
+  }
+
+  return true;
 }
 
 bool Dumper::runDumper()
@@ -58,90 +136,6 @@ bool readOffset(
   }
 
   return true;
-}
-
-bool Dumper::findCHud()
-{
-  auto process = Engine::getProcess();
-  auto client = Engine::getClient();
-
-  // 48 89 5C 24 20 57 48 83 EC 20 0F B6 DA 48 8B F9
-  std::vector<uint8_t> signature = {0x48, 0x89, 0x5C, 0x24, 0x20, 0x57, 0x48, 0x83, 0xEC, 0x20, 0x0F, 0xB6, 0xDA, 0x48, 0x8B, 0xF9};
-  std::vector<bool> mask = {true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true};
-
-  std::uintptr_t signature_address = process->FindSignature(client, signature, mask);
-
-  if (signature_address != 0)
-  {
-    logger::info("Found HUD manager function at: " + std::to_string(signature_address));
-
-    std::uintptr_t displacementAddress = signature_address + 0xEF + 3;
-
-    int32_t relativeOffset = process->read<int32_t>(displacementAddress);
-
-    uintptr_t cHudAbsoluteAddress = displacementAddress + 4 + relativeOffset;
-
-    offsets::c_hud = cHudAbsoluteAddress - client.base;
-
-    char hexStr[32];
-    sprintf_s(hexStr, "0x%llX", offsets::c_hud);
-    logger::info(std::string("Offset `c_hud` found at ") + hexStr);
-  }
-  else
-  {
-    logger::error(
-        "Could not find `c_hud` offset, using default offset value. Radar may or may not work.");
-
-    return false;
-  }
-
-  return true;
-}
-
-bool Dumper::findVEngineCVar()
-{
-  auto process = Engine::getProcess();
-  auto tier0 = Engine::getTier0();
-
-  // 4C 8B 0D ?? ?? ?? ?? 4C 8B D2 4C 8B D9 4D 85 C9 74 2E
-  std::vector<uint8_t> signature = {
-      0x4C, 0x8B, 0x0D, 0x00, 0x00, 0x00, 0x00, // mov r9, qword ptr [DAT_1803a2ea0]
-      0x4C, 0x8B, 0xD2,                         // mov r10, rdx
-      0x4C, 0x8B, 0xD9,                         // mov r11, rcx
-      0x4D, 0x85, 0xC9,                         // test r9, r9
-      0x74, 0x2E                                // jz LAB_18020b2f0
-  };
-  std::vector<bool> mask = {
-      true, true, true, false, false, false, false,
-      true, true, true,
-      true, true, true,
-      true, true, true,
-      true, true};
-
-  std::uintptr_t signatureAddress = process->FindSignature(tier0, signature, mask);
-
-  if (signatureAddress != 0)
-  {
-    uintptr_t displacementAddress = signatureAddress + 3;
-
-    int32_t relativeOffset = 0;
-    process->read_raw(displacementAddress, &relativeOffset, sizeof(relativeOffset));
-
-    uintptr_t absoluteInterfaceRegHead = displacementAddress + 4 + relativeOffset;
-
-    offsets::VEngineCvar = absoluteInterfaceRegHead - tier0.base;
-
-    char hexStr[32];
-    sprintf_s(hexStr, "0x%llX", offsets::VEngineCvar);
-    logger::info(std::string("Dynamically resolved fresh VEngineCvar interface register offset at: ") + hexStr);
-  }
-  else
-  {
-    logger::error(
-        "Failed to find `CreateInterface` registry array signature block inside tier0 memory maps.");
-
-    return false;
-  }
 }
 
 bool Dumper::loadOffsets()

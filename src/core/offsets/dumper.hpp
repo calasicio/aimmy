@@ -15,8 +15,8 @@ private:
   }
 
   bool initImpl();
-  bool runDumper();
   bool findCHud();
-  bool findVEngineCVar();
+  bool findCCVar();
+  bool runDumper();
   bool loadOffsets();
 };
