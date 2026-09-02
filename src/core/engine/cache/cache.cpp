@@ -53,7 +53,7 @@ bool Cache::updateImpl()
   localPlayer.update();
 
   std::vector<Player> tempPlayerList;
-  tempPlayerList.reserve(globals.maxClients);
+  tempPlayerList.reserve(12);
 
   if (game.entityList != 0)
   {

@@ -7,7 +7,8 @@ class Player
 {
 public:
   Player() {}
-  Player(int index, uintptr_t listEntry, uintptr_t entityList) : index(index), listEntry(listEntry), entityList(entityList) {}
+  Player(int index, uintptr_t entityList, uintptr_t listEntry)
+      : index(index), entityList(entityList), listEntry(listEntry) {}
 
   virtual ~Player() = default;
 

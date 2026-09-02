@@ -27,4 +27,5 @@ private:
   void renderImpl();
 
   void renderFollowRecoil();
+  void renderRadar();
 };

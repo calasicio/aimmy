@@ -82,8 +82,6 @@ void Engine::thread()
 {
   while (true)
   {
-    const auto now = std::chrono::steady_clock::now();
-
     Cache::update();
   }
 }

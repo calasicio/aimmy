@@ -23,7 +23,6 @@ bool Player::update()
 bool Player::getController()
 {
   auto process = Engine::getProcess();
-  auto client = Engine::getClient();
 
   this->controller = process->read<DWORD64>(this->listEntry + (this->index + 1) * 0x70);
 
