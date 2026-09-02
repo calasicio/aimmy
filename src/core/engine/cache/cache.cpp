@@ -22,6 +22,7 @@ Snapshot Cache::copySnapshot()
       getInstance().game,
       getInstance().globals,
       getInstance().hud,
+      getInstance().convars,
       getInstance().localPlayer,
       getInstance().players,
   };
@@ -30,6 +31,7 @@ Snapshot Cache::copySnapshot()
 bool Cache::initImpl()
 {
   hud.init();
+  convars.init();
 
   return true;
 }
@@ -47,6 +49,7 @@ bool Cache::updateImpl()
   game.update();
   globals.update();
   hud.update();
+  convars.update();
   localPlayer.update();
 
   std::vector<Player> tempPlayerList;
@@ -75,6 +78,8 @@ bool Cache::updateImpl()
 
   std::lock_guard<std::mutex>
       lock(mtx);
+
+  players = std::move(tempPlayerList);
 
   return true;
 }

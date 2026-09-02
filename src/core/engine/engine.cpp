@@ -1,6 +1,7 @@
 #include "engine.hpp"
 
 #include <chrono>
+#include <string>
 #include <thread>
 
 using namespace std::chrono_literals;
