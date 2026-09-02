@@ -45,6 +45,9 @@ public:
   bool UpdateHWND();
   void Close();
 
+private:
+  pMemory memory_;
+
 public:
   ProcessModule GetModule(const char *module_name);
   LPVOID Allocate(size_t size_in_bytes);
@@ -66,11 +69,9 @@ public:
   bool read_raw(uintptr_t address, void *buffer, size_t size)
   {
     SIZE_T bytesRead;
-    pMemory cMemory;
-
-    NTSTATUS status = cMemory.pfnNtReadVirtualMemory(this->handle_, (PVOID)(address), buffer, static_cast<ULONG>(size), (PULONG)&bytesRead);
-
-    return status == 0x00000000 /*STATUS_SUCCESS*/ || bytesRead == size;
+    NTSTATUS status = memory_.pfnNtReadVirtualMemory(
+        this->handle_, (PVOID)address, buffer, static_cast<ULONG>(size), (PULONG)&bytesRead);
+    return status == 0x00000000 || bytesRead == size;
   }
 
   std::string read_string(uintptr_t address, size_t max_length = 256)
@@ -107,24 +108,20 @@ public:
   template <class T>
   void write(uintptr_t address, T value)
   {
-    pMemory cMemory;
-    cMemory.pfnNtWriteVirtualMemory(handle_, (void *)address, &value, sizeof(T), 0);
+    memory_.pfnNtWriteVirtualMemory(handle_, (void *)address, &value, sizeof(T), 0);
   }
 
   template <class T>
   T read(uintptr_t address)
   {
     T buffer{};
-    pMemory cMemory;
-
-    cMemory.pfnNtReadVirtualMemory(handle_, (void *)address, &buffer, sizeof(T), 0);
+    memory_.pfnNtReadVirtualMemory(handle_, (void *)address, &buffer, sizeof(T), 0);
     return buffer;
   }
 
   void write_bytes(uintptr_t addr, std::vector<uint8_t> patch)
   {
-    pMemory cMemory;
-    cMemory.pfnNtWriteVirtualMemory(handle_, (void *)addr, &patch[0], patch.size(), 0);
+    memory_.pfnNtWriteVirtualMemory(handle_, (void *)addr, &patch[0], patch.size(), 0);
   }
 
   uintptr_t read_multi_address(uintptr_t ptr, std::vector<uintptr_t> offsets)
