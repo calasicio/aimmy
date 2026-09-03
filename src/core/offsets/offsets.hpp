@@ -46,7 +46,6 @@ namespace offsets
 
   namespace C_BasePlayerPawn
   {
-    inline std::ptrdiff_t m_pMovementServices = 0x1248;
     inline std::ptrdiff_t m_vOldOrigin = 0x13B8;
   }
 
@@ -83,10 +82,5 @@ namespace offsets
       inline std::ptrdiff_t m_hPawn = 0x6BC;
       inline std::ptrdiff_t m_bIsLocalPlayerController = 0x788;
     }
-  }
-
-  namespace CPlayer_MovementServices
-  {
-    inline std::ptrdiff_t m_flMaxspeed = 0x1AC;
   }
 }

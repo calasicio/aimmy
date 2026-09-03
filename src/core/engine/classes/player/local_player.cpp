@@ -57,9 +57,6 @@ bool LocalPlayer::updatePawn()
   auto process = Engine::getProcess();
   auto client = Engine::getClient();
 
-  std::uintptr_t movementService = process->read<std::uintptr_t>(this->pawn + offsets::C_BasePlayerPawn::m_pMovementServices);
-  this->maxMovementSpeed = process->read<float>(movementService + offsets::CPlayer_MovementServices::m_flMaxspeed);
-
   this->viewAngle = process->read<Vector3>(client.base + offsets::dwViewAngles);
 
   updateVelocity();

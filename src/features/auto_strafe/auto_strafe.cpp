@@ -12,7 +12,7 @@ void AutoStrafe::update(float dt)
 {
   Cache::withLock([this, dt](const Cache &cache)
                   {
-    if (!mouse::isButtonPressed(5))
+    if (!keys::isKeyPressed(VK_LMENU))
     {
       resetState();
       return;
