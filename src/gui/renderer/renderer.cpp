@@ -79,6 +79,8 @@ void Renderer::threadImpl()
 {
   while (isRunning)
   {
+    const auto now = std::chrono::steady_clock::now();
+
     render();
 
     // If the game is not focused dont do states,
@@ -87,6 +89,8 @@ void Renderer::threadImpl()
       continue; // It will cause flickering if we handle window order after window closes
 
     handleWindowOrder();
+
+    std::this_thread::sleep_until(now + std::chrono::milliseconds(4));
   }
 
   Cheat::destroy();

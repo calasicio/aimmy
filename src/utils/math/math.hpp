@@ -7,7 +7,7 @@
 #include "core/engine/types/vector3.hpp"
 #include "core/engine/types/structs.hpp"
 
-Vector3 anglesToForward(const Vector3 &angles)
+inline Vector3 anglesToForward(const Vector3 &angles)
 {
   float pitchRad = angles.x * (3.14159265358979323846f / 180.0f);
   float yawRad = angles.y * (3.14159265358979323846f / 180.0f);
@@ -25,7 +25,7 @@ Vector3 anglesToForward(const Vector3 &angles)
   return forward;
 }
 
-bool worldToScreen(const Vector3 &worldPos, ImVec2 &screenPos, const ViewMatrix &matrix, const ImVec2 &displaySize)
+inline bool worldToScreen(const Vector3 &worldPos, ImVec2 &screenPos, const ViewMatrix &matrix, const ImVec2 &displaySize)
 {
   float w = worldPos.x * matrix.m[3][0] + worldPos.y * matrix.m[3][1] + worldPos.z * matrix.m[3][2] + matrix.m[3][3];
 
