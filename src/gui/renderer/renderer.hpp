@@ -38,4 +38,7 @@ private:
   bool isOpen = false;
 
   bool isFocused = false;
+
+  bool allowRenderOverlayToggle = true;
+  bool renderOverlay = false;
 };

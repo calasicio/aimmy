@@ -105,7 +105,10 @@ void Renderer::render()
 {
   Window::StartRender();
 
-  Overlay::render();
+  if (renderOverlay)
+  {
+    Overlay::render();
+  }
 
   Window::EndRender();
 }
@@ -115,9 +118,27 @@ bool Renderer::handleState()
   isRunning = Window::shouldRun; // From the window event handler
 
   bool pressed_end = (GetAsyncKeyState(VK_END) & 0x8000);
-
   if (pressed_end)
     this->isRunning = false;
+
+  bool ctrlDown = (GetAsyncKeyState(VK_LCONTROL) & 0x8000) != 0;
+  bool shiftDown = (GetAsyncKeyState(VK_LSHIFT) & 0x8000) != 0;
+  bool comboPressed = ctrlDown && shiftDown;
+
+  if (comboPressed)
+  {
+    if (allowRenderOverlayToggle)
+    {
+      allowRenderOverlayToggle = false;
+      renderOverlay = !renderOverlay;
+
+      logger::info(std::string("Overlay toggled ") + (renderOverlay ? "ON" : "OFF"));
+    }
+  }
+  else
+  {
+    allowRenderOverlayToggle = true;
+  }
 
   return false;
 }
