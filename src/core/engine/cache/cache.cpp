@@ -37,6 +37,9 @@ bool Cache::initImpl()
 
 bool Cache::updateImpl()
 {
+  std::lock_guard<std::mutex>
+      lock(mtx);
+
   auto process = Engine::getProcess();
   auto client = Engine::getClient();
 
@@ -74,9 +77,6 @@ bool Cache::updateImpl()
       tempPlayerList.push_back(player);
     }
   }
-
-  std::lock_guard<std::mutex>
-      lock(mtx);
 
   players = std::move(tempPlayerList);
 

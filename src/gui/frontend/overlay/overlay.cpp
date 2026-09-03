@@ -35,35 +35,37 @@ void Overlay::renderFollowRecoil(const Cache &cache)
   auto &io = ImGui::GetIO();
   auto *d = ImGui::GetBackgroundDrawList();
 
-  auto &shotsFired = cache.localPlayer.shotsFired;
-
-  if (shotsFired <= 0)
-  {
+  if (cache.localPlayer.shotsFired <= 1)
     return;
-  }
 
-  auto &aimPunch = cache.localPlayer.aimPunch;
-  auto &viewAngle = cache.localPlayer.viewAngle;
-  auto &viewMatrix = cache.game.viewMatrix;
-  auto &cameraPosition = cache.localPlayer.cameraPos;
+  Vector3 aimPunch = cache.localPlayer.aimPunch;
+  Vector3 viewAngle = cache.localPlayer.viewAngle;
 
-  Vector3 firingAngles;
-  firingAngles.x = viewAngle.x + (aimPunch.x * 2.0f);
-  firingAngles.y = viewAngle.y + (aimPunch.y * 2.0f);
-  firingAngles.z = 0.0f;
+  Vector3 bulletAngles;
+  bulletAngles.x = viewAngle.x + (aimPunch.x);
+  bulletAngles.y = viewAngle.y + (aimPunch.y);
+  bulletAngles.z = 0.0f;
 
-  Vector3 forward = anglesToForward(firingAngles);
+  Vector3 cameraPos = cache.localPlayer.cameraPos;
+  Vector3 viewForward = anglesToForward(viewAngle);
+  Vector3 bulletForward = anglesToForward(bulletAngles);
 
-  Vector3 targetWorldPos = {
-      cameraPosition.x + (forward.x * 150.0f),
-      cameraPosition.y + (forward.y * 150.0f),
-      cameraPosition.z + (forward.z * 150.0f)};
+  const float DIST = 10000.0f;
 
-  ImVec2 bulletPoint;
-  if (worldToScreen(targetWorldPos, bulletPoint, viewMatrix, io.DisplaySize))
-  {
-    d->AddCircleFilled(bulletPoint, 3.0f, IM_COL32(0, 0, 255, 255), 12);
-  }
+  ImVec2 screenView, screenBullet;
+  bool viewOk = worldToScreen(cameraPos + viewForward * DIST, screenView, cache.game.viewMatrix, io.DisplaySize);
+  bool bulletOk = worldToScreen(cameraPos + bulletForward * DIST, screenBullet, cache.game.viewMatrix, io.DisplaySize);
+
+  if (!viewOk || !bulletOk)
+    return;
+
+  float dx = screenBullet.x - screenView.x;
+  float dy = screenBullet.y - screenView.y;
+
+  ImVec2 screenCenter = {io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f};
+  ImVec2 bulletPoint = {screenCenter.x + dx, screenCenter.y + dy};
+
+  d->AddCircle(bulletPoint, 3.0f, IM_COL32(0, 0, 255, 255), 12);
 }
 
 void Overlay::renderRadar(const Cache &cache)
