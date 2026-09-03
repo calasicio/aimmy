@@ -112,8 +112,8 @@ void RCS::update(float dt)
     }
 
     Vector2 moveAmount = {
-        (rawDeltaPunch.y / (cache.convars.sensitivity * -YAW_PITCH_FACTOR)) + accumulatedError.x,
-        (rawDeltaPunch.x / (cache.convars.sensitivity * YAW_PITCH_FACTOR)) + accumulatedError.y};
+        (deltaPunch.y / (cache.convars.sensitivity * -YAW_PITCH_FACTOR)) + accumulatedError.x,
+        (deltaPunch.x / (cache.convars.sensitivity * YAW_PITCH_FACTOR)) + accumulatedError.y};
 
     int moveX = static_cast<int>(moveAmount.x);
     int moveY = static_cast<int>(moveAmount.y);
