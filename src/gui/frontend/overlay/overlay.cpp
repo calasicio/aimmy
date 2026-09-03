@@ -22,18 +22,18 @@ bool Overlay::initImpl()
 
 void Overlay::renderImpl()
 {
-  renderFollowRecoil();
-  renderRadar();
+  auto snapshot = Cache::copySnapshot();
+  renderFollowRecoil(snapshot);
+  renderRadar(snapshot);
 }
 
 const float YAW_PITCH_FACTOR = 0.022f;
 
-void Overlay::renderFollowRecoil()
+void Overlay::renderFollowRecoil(Snapshot snapshot)
 {
   auto &io = ImGui::GetIO();
   auto *d = ImGui::GetBackgroundDrawList();
 
-  auto snapshot = Cache::copySnapshot();
   auto &shotsFired = snapshot.localPlayer.shotsFired;
 
   if (shotsFired <= 0)
@@ -65,12 +65,11 @@ void Overlay::renderFollowRecoil()
   }
 }
 
-void Overlay::renderRadar()
+void Overlay::renderRadar(Snapshot snapshot)
 {
   auto &io = ImGui::GetIO();
   auto *d = ImGui::GetBackgroundDrawList();
 
-  auto snapshot = Cache::copySnapshot();
   const auto &hudSnap = snapshot.hud.snapshot;
   const auto &convars = snapshot.convars;
 
@@ -176,9 +175,9 @@ void Overlay::renderRadar()
     if (sx < radarMinX || sx > radarMaxX || sy < radarMinY || sy > radarMaxY)
       continue;
 
-    const ImU32 color = (player.teamNum == 3)
-                            ? IM_COL32(100, 150, 255, 255)
-                            : IM_COL32(255, 200, 50, 255);
+    const ImU32 color = convars.teammatesAreEnemies
+                            ? (player.teamNum == 3 ? IM_COL32(100, 150, 255, 255) : IM_COL32(255, 50, 50, 255))
+                            : IM_COL32(255, 50, 50, 255);
 
     const float drawX = sx * scaleX;
     const float drawY = sy * scaleY;

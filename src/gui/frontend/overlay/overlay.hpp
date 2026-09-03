@@ -26,6 +26,6 @@ private:
   bool initImpl();
   void renderImpl();
 
-  void renderFollowRecoil();
-  void renderRadar();
+  void renderFollowRecoil(Snapshot snapshot);
+  void renderRadar(Snapshot snapshot);
 };
