@@ -13,6 +13,33 @@ namespace offsets
   inline std::ptrdiff_t dwViewAngles = 0x23DC2F8;
   inline std::ptrdiff_t dwViewMatrix = 0x23CB830;
 
+  inline std::ptrdiff_t CCVars;
+
+  inline std::ptrdiff_t c_hud = 0x2436710;
+
+  inline std::ptrdiff_t dwWindowHeight = 0x9118D4;
+  inline std::ptrdiff_t dwWindowWidth = 0x9118D0;
+
+  namespace CCSGO_HudTree
+  {
+    constexpr std::uintptr_t Base = 0x258;  // DAT_182436710 + 600 (600 dec = 0x258)
+    constexpr std::uintptr_t Count = 0x264; // *(uint *)(DAT_182436710 + 0x264)
+    constexpr std::uintptr_t Pool = 0x268;  // *(longlong *)(DAT_182436710 + 0x268)
+  }
+
+  // Just decompile the game and look at the CCSGO_HudRadar struct, the offsets are there
+  namespace CCSGO_HudRadar
+  {
+    constexpr std::uintptr_t IsRound = 0x60;
+    constexpr std::uintptr_t MapTexturePosition = 0x190;
+    constexpr std::uintptr_t VisibilitySizeMax = 0x19C;
+    constexpr std::uintptr_t VisibilitySize = 0x1A0;
+    constexpr std::uintptr_t MapTextureScale = 0x1B4;
+    constexpr std::uintptr_t MaxVisibilitySquared = 0x1B8;
+    constexpr std::uintptr_t OriginTextureDiff = 0x1D0;
+    constexpr std::uintptr_t RadarScale = 0x17F8C;
+  }
+
   namespace CGlobalVarsBase
   {
     inline std::ptrdiff_t m_iMaxClients = 0x10;
@@ -50,6 +77,12 @@ namespace offsets
     inline std::ptrdiff_t m_pGameSceneNode = 0x330;
     inline std::ptrdiff_t m_iHealth = 0x34C;
     inline std::ptrdiff_t m_iTeamNum = 0x3E7;
+
+    namespace CBasePlayerController
+    {
+      inline std::ptrdiff_t m_hPawn = 0x6BC;
+      inline std::ptrdiff_t m_bIsLocalPlayerController = 0x788;
+    }
   }
 
 }

@@ -1,6 +1,7 @@
 #include "engine.hpp"
 
 #include <chrono>
+#include <string>
 #include <thread>
 
 using namespace std::chrono_literals;
@@ -22,6 +23,11 @@ ProcessModule Engine::getClient()
 ProcessModule Engine::getEngine()
 {
   return getInstance().engine;
+}
+
+ProcessModule Engine::getTier0()
+{
+  return getInstance().tier0;
 }
 
 std::shared_ptr<pProcess> Engine::getProcess()
@@ -55,6 +61,16 @@ bool Engine::initImpl()
     logger::info("Using default offsets");
   }
 
+  if (Cache::init())
+  {
+    logger::info("Successfully initialized cache");
+  }
+  else
+  {
+    logger::fatal("Failed to initialize cache");
+    return false;
+  }
+
   std::thread(&Engine::thread, this).detach();
 
   logger::info("Successfully initialized engine...");
@@ -66,8 +82,6 @@ void Engine::thread()
 {
   while (true)
   {
-    const auto now = std::chrono::steady_clock::now();
-
     Cache::update();
   }
 }
@@ -118,8 +132,9 @@ bool Engine::awaitModules()
   {
     this->client = process->GetModule("client.dll");
     this->engine = process->GetModule("engine2.dll");
+    this->tier0 = process->GetModule("tier0.dll");
 
-    if (this->client.base && this->engine.base)
+    if (this->client.base && this->engine.base && this->tier0.base)
       break;
 
     static int attempts = 0;

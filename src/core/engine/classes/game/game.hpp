@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "core/engine/types/vector2.hpp"
 #include "core/engine/types/structs.hpp"
 
 class Game
@@ -14,4 +15,9 @@ public:
 public:
   float sensitivity = 1.0;
   ViewMatrix viewMatrix;
+
+  uintptr_t entityList;
+  uintptr_t listEntry;
+
+  Vector2 windowSize = {0, 0};
 };

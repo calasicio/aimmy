@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "offsets.hpp"
+#include "core/engine/engine.hpp"
 #include "utils/filesystem/filesystem.hpp"
 #include "utils/json.hpp"
 #include "utils/logger/logger.hpp"
@@ -16,10 +17,94 @@ bool Dumper::init()
 
 bool Dumper::initImpl()
 {
+  logger::info("Finding `c_hud` offset...");
+  findCHud();
+
+  logger::info("Finding `CCVar` offset...");
+  findCCVar();
+
   if (!runDumper())
     return false;
 
   return loadOffsets();
+}
+
+bool Dumper::findCHud()
+{
+  auto process = Engine::getProcess();
+  auto client = Engine::getClient();
+
+  // 48 89 5C 24 20 57 48 83 EC 20 0F B6 DA 48 8B F9
+  std::vector<uint8_t> signature = {0x48, 0x89, 0x5C, 0x24, 0x20, 0x57, 0x48, 0x83, 0xEC, 0x20, 0x0F, 0xB6, 0xDA, 0x48, 0x8B, 0xF9};
+  std::vector<bool> mask = {true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true};
+
+  std::uintptr_t sigAddr = process->FindSignature(client, signature, mask);
+
+  if (sigAddr != 0)
+  {
+    logger::info("Found HUD manager function at: " + std::to_string(sigAddr));
+
+    std::uintptr_t displacementAddress = sigAddr + 0xEF + 3;
+
+    int32_t relativeOffset = process->read<int32_t>(displacementAddress);
+
+    uintptr_t cHudAbsoluteAddress = displacementAddress + 4 + relativeOffset;
+
+    offsets::c_hud = cHudAbsoluteAddress - client.base;
+
+    char hexStr[32];
+    sprintf_s(hexStr, "0x%llX", offsets::c_hud);
+    logger::info(std::string("Offset `c_hud` found at ") + hexStr);
+  }
+  else
+  {
+    logger::error(
+        "Could not find `c_hud` offset, using default offset value. Radar may or may not work.");
+
+    return false;
+  }
+
+  return true;
+}
+
+/*
+Module: tier0.dll
+Pattern: 4C 8D 3D ? ? ? ? 0F 28 45
+Type: RIP-relative LEA (lea r15, [rip+...])
+Displacement offset: +3
+Instruction size: 7
+*/
+bool Dumper::findCCVar()
+{
+  auto process = Engine::getProcess();
+  auto tier0 = Engine::getTier0();
+
+  std::vector<uint8_t> signature = {0x4C, 0x8D, 0x3D, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x28, 0x45};
+  std::vector<bool> mask = {true, true, true, false, false, false, false, true, true, true};
+
+  std::uintptr_t sigAddr = process->FindSignature(tier0, signature, mask);
+
+  if (sigAddr != 0)
+  {
+    int32_t rel = 0;
+    process->read_raw(sigAddr + 3, &rel, sizeof(rel));
+    uintptr_t cvarIf = sigAddr + 7 + rel;
+
+    offsets::CCVars = cvarIf - tier0.base;
+
+    char hexStr[32];
+    sprintf_s(hexStr, "0x%llX", offsets::CCVars);
+    logger::info(std::string("Offset `CCVar` found at ") + hexStr);
+  }
+  else
+  {
+    logger::error(
+        "Could not find `CCVar` offset. This is a critical error and the program will likely crash.");
+
+    return false;
+  }
+
+  return true;
 }
 
 bool Dumper::runDumper()
@@ -45,9 +130,7 @@ bool readOffset(
   if (!json_utils::read(data, destination, path))
   {
     logger::error(
-        std::format(
-            "Offset `{}` was not found or is invalid",
-            name));
+        std::string("Offset `") + std::string(name) + "` was not found or is invalid");
 
     return false;
   }
@@ -156,6 +239,18 @@ bool Dumper::loadOffsets()
       "dwViewMatrix",
       {"client.dll", "dwViewMatrix"});
 
+  success &= readOffset(
+      offsetsData,
+      offsets::dwWindowHeight,
+      "dwWindowHeight",
+      {"engine2.dll", "dwWindowHeight"});
+
+  success &= readOffset(
+      offsetsData,
+      offsets::dwWindowWidth,
+      "dwWindowWidth",
+      {"engine2.dll", "dwWindowWidth"});
+
   // C_BasePlayerPawn
   success &= readOffset(
       clientDLLData,
@@ -215,6 +310,19 @@ bool Dumper::loadOffsets()
       offsets::C_BaseEntity::m_iTeamNum,
       "m_iTeamNum",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_iTeamNum"});
+
+  // |- CBasePlayerController
+  success &= readOffset(
+      clientDLLData,
+      offsets::C_BaseEntity::CBasePlayerController::m_hPawn,
+      "m_hPawn",
+      {"client.dll", "classes", "CBasePlayerController", "fields", "m_hPawn"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::C_BaseEntity::CBasePlayerController::m_bIsLocalPlayerController,
+      "m_bIsLocalPlayerController",
+      {"client.dll", "classes", "CBasePlayerController", "fields", "m_bIsLocalPlayerController"});
 
   return success;
 }

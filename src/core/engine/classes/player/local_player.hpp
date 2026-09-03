@@ -1,29 +1,19 @@
 #pragma once
 
-#include <cstdint>
+#include "player.hpp"
 
-#include "core/engine/types/vector3.hpp"
-
-class LocalPlayer
+class LocalPlayer : public Player
 {
 public:
-  LocalPlayer() {}
+  LocalPlayer() : Player(), shotsFired(0) {}
 
   bool update();
 
 public:
-  int health = 0;
-  int shotsFired = 0;
-
+  int shotsFired;
   Vector3 viewAngle = {0, 0, 0};
   Vector3 cameraPos = {0, 0, 0};
   Vector3 aimPunch = {0, 0, 0};
-
-  bool isAlive = false;
-
-public:
-  std::uintptr_t pawn;
-  std::uintptr_t controller;
 
 private:
   bool getPawn();

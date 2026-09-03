@@ -129,26 +129,32 @@ ProcessModule pProcess::GetModule(const char *lModule)
   int wideCharLength = MultiByteToWideChar(CP_UTF8, 0, lModule, -1, nullptr, 0);
   if (wideCharLength > 0)
   {
-    wideModule.resize(wideCharLength);
+    wideModule.resize(wideCharLength - 1);
     MultiByteToWideChar(CP_UTF8, 0, lModule, -1, &wideModule[0], wideCharLength);
   }
 
-  HANDLE handle_module = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid_);
+  HANDLE handle_module = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid_);
+  if (handle_module == INVALID_HANDLE_VALUE) return {0, 0};
+
   MODULEENTRY32W module_entry_{};
   module_entry_.dwSize = sizeof(MODULEENTRY32W);
 
-  do
+  if (Module32FirstW(handle_module, &module_entry_))
   {
-    if (!wcscmp(module_entry_.szModule, wideModule.c_str()))
+    do
     {
-      CloseHandle(handle_module);
-      return {(DWORD_PTR)module_entry_.modBaseAddr, module_entry_.dwSize};
-    }
-  } while (Module32NextW(handle_module, &module_entry_));
+      if (_wcsicmp(module_entry_.szModule, wideModule.c_str()) == 0)
+      {
+        CloseHandle(handle_module);
+        return {(DWORD_PTR)module_entry_.modBaseAddr, module_entry_.modBaseSize};
+      }
+    } while (Module32NextW(handle_module, &module_entry_));
+  }
 
   CloseHandle(handle_module);
   return {0, 0};
 }
+
 
 LPVOID pProcess::Allocate(size_t size_in_bytes)
 {
@@ -184,33 +190,40 @@ uintptr_t pProcess::FindSignature(std::vector<uint8_t> signature)
   return 0x0;
 }
 
-uintptr_t pProcess::FindSignature(ProcessModule target_module, std::vector<uint8_t> signature)
+uintptr_t pProcess::FindSignature(ProcessModule target_module, std::vector<uint8_t> signature, const std::vector<bool>& mask)
 {
-  std::unique_ptr<uint8_t[]> data;
-  data = std::make_unique<uint8_t[]>(0xFFFFFFF);
+  if (target_module.base == 0 || target_module.size == 0)
+    return 0;
 
-  if (!ReadProcessMemory(this->handle_, (void *)(target_module.base), data.get(), 0xFFFFFFF, NULL))
+  auto data = std::make_unique<uint8_t[]>(target_module.size);
+
+  if (!ReadProcessMemory(this->handle_, (void *)(target_module.base), data.get(), target_module.size, NULL))
   {
-    return NULL;
+    return 0;
   }
 
-  for (uintptr_t i = 0; i < 0xFFFFFFF; i++)
+  for (uintptr_t i = 0; i <= target_module.size - signature.size(); i++)
   {
+    bool found = true;
     for (uintptr_t j = 0; j < signature.size(); j++)
     {
-      if (signature.at(j) == 0x00)
+      if (!mask[j])
         continue;
 
-      if (*reinterpret_cast<uint8_t *>(reinterpret_cast<uintptr_t>(&data[i + j])) == signature.at(j))
+      if (data[i + j] != signature[j])
       {
-        if (j == signature.size() - 1)
-          return this->base_client_.base + i;
-        continue;
+        found = false;
+        break;
       }
-      break;
+    }
+
+    if (found)
+    {
+      return target_module.base + i;
     }
   }
-  return 0x0;
+
+  return 0;
 }
 
 uintptr_t pProcess::FindCodeCave(uint32_t length_in_bytes)

@@ -45,12 +45,15 @@ public:
   bool UpdateHWND();
   void Close();
 
+private:
+  pMemory memory_;
+
 public:
   ProcessModule GetModule(const char *module_name);
   LPVOID Allocate(size_t size_in_bytes);
   uintptr_t FindCodeCave(uint32_t length_in_bytes);
   uintptr_t FindSignature(std::vector<uint8_t> signature);
-  uintptr_t FindSignature(ProcessModule target_module, std::vector<uint8_t> signature);
+  uintptr_t FindSignature(ProcessModule target_module, std::vector<uint8_t> signature, const std::vector<bool> &mask);
 
   template <class T>
   uintptr_t ReadOffsetFromSignature(std::vector<uint8_t> signature, uint8_t offset) // offset example: "FF 05 ->22628B01<-" offset is 2
@@ -66,34 +69,59 @@ public:
   bool read_raw(uintptr_t address, void *buffer, size_t size)
   {
     SIZE_T bytesRead;
-    pMemory cMemory;
+    NTSTATUS status = memory_.pfnNtReadVirtualMemory(
+        this->handle_, (PVOID)address, buffer, static_cast<ULONG>(size), (PULONG)&bytesRead);
+    return status == 0x00000000 || bytesRead == size;
+  }
 
-    NTSTATUS status = cMemory.pfnNtReadVirtualMemory(this->handle_, (PVOID)(address), buffer, static_cast<ULONG>(size), (PULONG)&bytesRead);
+  std::string read_string(uintptr_t address, size_t max_length = 256)
+  {
+    if (!address)
+      return "";
 
-    return status == 0x00000000 /*STATUS_SUCCESS*/ || bytesRead == size;
+    std::string result;
+    char buffer[64];
+
+    size_t total_read = 0;
+    while (total_read < max_length)
+    {
+      size_t chunk_size = std::min<size_t>(sizeof(buffer), max_length - total_read);
+      if (!read_raw(address + total_read, buffer, chunk_size))
+        break;
+
+      for (size_t i = 0; i < chunk_size; i++)
+      {
+        if (buffer[i] == '\0')
+        {
+          result.append(buffer, i);
+          return result;
+        }
+      }
+
+      result.append(buffer, chunk_size);
+      total_read += chunk_size;
+    }
+
+    return result;
   }
 
   template <class T>
   void write(uintptr_t address, T value)
   {
-    pMemory cMemory;
-    cMemory.pfnNtWriteVirtualMemory(handle_, (void *)address, &value, sizeof(T), 0);
+    memory_.pfnNtWriteVirtualMemory(handle_, (void *)address, &value, sizeof(T), 0);
   }
 
   template <class T>
   T read(uintptr_t address)
   {
     T buffer{};
-    pMemory cMemory;
-
-    cMemory.pfnNtReadVirtualMemory(handle_, (void *)address, &buffer, sizeof(T), 0);
+    memory_.pfnNtReadVirtualMemory(handle_, (void *)address, &buffer, sizeof(T), 0);
     return buffer;
   }
 
   void write_bytes(uintptr_t addr, std::vector<uint8_t> patch)
   {
-    pMemory cMemory;
-    cMemory.pfnNtWriteVirtualMemory(handle_, (void *)addr, &patch[0], patch.size(), 0);
+    memory_.pfnNtWriteVirtualMemory(handle_, (void *)addr, &patch[0], patch.size(), 0);
   }
 
   uintptr_t read_multi_address(uintptr_t ptr, std::vector<uintptr_t> offsets)
