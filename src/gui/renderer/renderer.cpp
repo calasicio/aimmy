@@ -59,7 +59,7 @@ bool Renderer::initImpl()
 
   Window::SetAffinity(Window::hwnd, WindowAffinity::Invisible);
 
-  Window::vsync = true;
+  Window::vsync = false;
 
   // We want the main thread to call render
   // And lock it

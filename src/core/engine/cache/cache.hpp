@@ -15,7 +15,6 @@ struct Snapshot
   Game game;
   Globals globals;
   Hud hud;
-  ConVars convars;
   LocalPlayer localPlayer;
   std::vector<Player> players;
 };
@@ -38,6 +37,13 @@ public:
   }
 
   static Snapshot copySnapshot();
+
+  template <typename Fn>
+  static void withLock(Fn &&fn)
+  {
+    std::lock_guard<std::mutex> lock(getInstance().mtx);
+    fn(getInstance());
+  }
 
   static bool init();
   static bool update();
