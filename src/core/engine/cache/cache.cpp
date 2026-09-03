@@ -22,7 +22,6 @@ Snapshot Cache::copySnapshot()
       getInstance().game,
       getInstance().globals,
       getInstance().hud,
-      getInstance().convars,
       getInstance().localPlayer,
       getInstance().players,
   };
@@ -53,7 +52,7 @@ bool Cache::updateImpl()
   localPlayer.update();
 
   std::vector<Player> tempPlayerList;
-  tempPlayerList.reserve(12);
+  tempPlayerList.reserve(globals.maxClients);
 
   if (game.entityList != 0)
   {

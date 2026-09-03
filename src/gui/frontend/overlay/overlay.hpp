@@ -26,6 +26,6 @@ private:
   bool initImpl();
   void renderImpl();
 
-  void renderFollowRecoil(Snapshot snapshot);
-  void renderRadar(Snapshot snapshot);
+  void renderFollowRecoil(const Cache &cache);
+  void renderRadar(const Cache &cache);
 };

@@ -22,29 +22,30 @@ bool Overlay::initImpl()
 
 void Overlay::renderImpl()
 {
-  auto snapshot = Cache::copySnapshot();
-  renderFollowRecoil(snapshot);
-  renderRadar(snapshot);
+  Cache::withLock([this](const Cache &cache)
+                  {
+    renderFollowRecoil(cache);
+    renderRadar(cache); });
 }
 
 const float YAW_PITCH_FACTOR = 0.022f;
 
-void Overlay::renderFollowRecoil(Snapshot snapshot)
+void Overlay::renderFollowRecoil(const Cache &cache)
 {
   auto &io = ImGui::GetIO();
   auto *d = ImGui::GetBackgroundDrawList();
 
-  auto &shotsFired = snapshot.localPlayer.shotsFired;
+  auto &shotsFired = cache.localPlayer.shotsFired;
 
   if (shotsFired <= 0)
   {
     return;
   }
 
-  auto &aimPunch = snapshot.localPlayer.aimPunch;
-  auto &viewAngle = snapshot.localPlayer.viewAngle;
-  auto &viewMatrix = snapshot.game.viewMatrix;
-  auto &cameraPosition = snapshot.localPlayer.cameraPos;
+  auto &aimPunch = cache.localPlayer.aimPunch;
+  auto &viewAngle = cache.localPlayer.viewAngle;
+  auto &viewMatrix = cache.game.viewMatrix;
+  auto &cameraPosition = cache.localPlayer.cameraPos;
 
   Vector3 firingAngles;
   firingAngles.x = viewAngle.x + (aimPunch.x * 2.0f);
@@ -65,15 +66,15 @@ void Overlay::renderFollowRecoil(Snapshot snapshot)
   }
 }
 
-void Overlay::renderRadar(Snapshot snapshot)
+void Overlay::renderRadar(const Cache &cache)
 {
   auto &io = ImGui::GetIO();
   auto *d = ImGui::GetBackgroundDrawList();
 
-  const auto &hudSnap = snapshot.hud.snapshot;
-  const auto &convars = snapshot.convars;
+  const auto &hudSnap = cache.hud.snapshot;
+  const auto &convars = cache.convars;
 
-  if (!snapshot.hud.isInitialized || !hudSnap.isValid)
+  if (!cache.hud.isInitialized || !hudSnap.isValid)
     return;
 
   const float hudScaling = std::max<float>(convars.hudScaling, 0.01f);
@@ -87,8 +88,8 @@ void Overlay::renderRadar(Snapshot snapshot)
   float logicalW = dispW, logicalH = dispH;
   float scaleX = 1.0f, scaleY = 1.0f;
 
-  const float gameW = snapshot.game.windowSize.x;
-  const float gameH = snapshot.game.windowSize.y;
+  const float gameW = cache.game.windowSize.x;
+  const float gameH = cache.game.windowSize.y;
   if (gameW >= 640.0f && gameH >= 480.0f && gameW <= 7680.0f && gameH <= 4320.0f)
   {
     float dispAspect = dispW / dispH;
@@ -119,7 +120,7 @@ void Overlay::renderRadar(Snapshot snapshot)
 
   constexpr float PI = 3.14159265358979f;
   const float yaw = convars.radarRotate
-                        ? (snapshot.localPlayer.viewAngle.y * (PI / 180.0f) + PI * 0.5f)
+                        ? (cache.localPlayer.viewAngle.y * (PI / 180.0f) + PI * 0.5f)
                         : PI;
 
   const float radarScale = hudSnap.isRound
@@ -132,12 +133,12 @@ void Overlay::renderRadar(Snapshot snapshot)
   float dotRadius = std::clamp(radarScale, 0.0f, 1.0f) * (1.25f - iconScaleMin) + iconScaleMin;
   dotRadius *= 7.5f * radarHudScaling * resScale;
 
-  for (const auto &player : snapshot.players)
+  for (const auto &player : cache.players)
   {
     if (player.health <= 0)
       continue;
 
-    if (player.teamNum == snapshot.localPlayer.teamNum && !convars.teammatesAreEnemies)
+    if (player.teamNum == cache.localPlayer.teamNum && !convars.teammatesAreEnemies)
       continue;
 
     const float dx = player.origin.x - hudSnap.mapTexturePosition.x;
