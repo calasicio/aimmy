@@ -352,7 +352,7 @@ void Window::SetForeground(HWND window)
 void Window::SetVSync(bool enable)
 {
   vsync = enable;
-  logger::info("VSync is now " + enable ? "Enabled" : "Disabled");
+  logger::info(std::string("VSync is now ") + (enable ? "Enabled" : "Disabled"));
 }
 
 // declaration of the ImGui_ImplWin32_WndProcHandler function
@@ -374,7 +374,8 @@ LRESULT CALLBACK window_procedure(HWND window, UINT msg, WPARAM wParam, LPARAM l
     break;
   case WM_KEYUP:
   {
-    bool toggle_key = wParam == VK_INSERT || wParam == VK_SHIFT && ((wParam >> 16) & 0xFF) == 0x36;
+    bool toggle_key = (wParam == VK_INSERT) ||
+                      (wParam == VK_SHIFT && ((lParam >> 16) & 0xFF) == 0x36);
 
     if (toggle_key)
     {
@@ -383,7 +384,7 @@ LRESULT CALLBACK window_procedure(HWND window, UINT msg, WPARAM wParam, LPARAM l
     }
     break;
   }
-  case WM_DESTROY:                                                // We dont handle this event
+  case WM_DESTROY:                                               // We dont handle this event
     logger::info("Window procedure WM_DESTROY event triggered"); // We dont want to exit if a child window is closed, as they are when changing tabs
     break;
   case WM_CLOSE:

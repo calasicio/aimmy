@@ -4,7 +4,7 @@
  *
  * Converts angular punch delta into raw mouse movement units.
  */
-const float YAW_PITCH_FACTOR = 0.022f;
+constexpr float YAW_PITCH_FACTOR = 0.022f;
 
 /* EMA_ALPHA: How fast the filtered target tracks the raw measurement
  *
@@ -13,7 +13,7 @@ const float YAW_PITCH_FACTOR = 0.022f;
  *              ignoring spikes and tracking only sustained trends
  *
  */
-const float EMA_ALPHA = 0.25f;
+constexpr float EMA_ALPHA = 0.25f;
 
 /* MAX_ACCEL_X: Horizontal slew rate limit
  *
@@ -22,7 +22,7 @@ const float EMA_ALPHA = 0.25f;
  *
  * Controls how aggressively the X correction can ramp.
  */
-const float MAX_ACCEL_X = 0.40f;
+constexpr float MAX_ACCEL_X = 0.40f;
 
 /* MAX_ACCEL_Y: Vertical slew rate limit
  *
@@ -30,7 +30,7 @@ const float MAX_ACCEL_X = 0.40f;
  *        0.35     = Max 0.35 units of vertical change per frame
  *
  */
-const float MAX_ACCEL_Y = 0.35f;
+constexpr float MAX_ACCEL_Y = 0.35f;
 
 /* NOISE_SCALE: Amplitude of hand micro-drift
  *
@@ -40,7 +40,7 @@ const float MAX_ACCEL_Y = 0.35f;
  * Higher values look like tremor; lower values look like
  * steady aim with minor fatigue.
  */
-const float NOISE_SCALE = 0.015f;
+constexpr float NOISE_SCALE = 0.015f;
 
 /* NOISE_CORRELATION: Temporal memory of hand drift
  *
@@ -50,7 +50,7 @@ const float NOISE_SCALE = 0.015f;
  * High values create slow, natural wandering rather than
  * frame-to-frame twitching.
  */
-const float NOISE_CORRELATION = 0.96f;
+constexpr float NOISE_CORRELATION = 0.96f;
 
 /* NOISE_MEAN_REVERSION: Per-frame pull back toward zero drift
  *
@@ -60,7 +60,7 @@ const float NOISE_CORRELATION = 0.96f;
  * Prevents the correlated noise from meandering too far
  * from the intended aim point over long sprays.
  */
-const float NOISE_MEAN_REVERSION = 0.02f;
+constexpr float NOISE_MEAN_REVERSION = 0.02f;
 
 /* RECOVERY_DECAY: Muscle tension release rate when not firing
  *
@@ -70,7 +70,7 @@ const float NOISE_MEAN_REVERSION = 0.02f;
  * Each idle frame, control states lose (1 - decay) percent
  * of their magnitude. 0.82 gives a natural ~15-frame relaxation.
  */
-const float RECOVERY_DECAY = 0.82f;
+constexpr float RECOVERY_DECAY = 0.82f;
 
 /* SETTLED_THRESHOLD: Hard-reset residual threshold
  *
@@ -79,7 +79,7 @@ const float RECOVERY_DECAY = 0.82f;
  * Once total residual correction drops below this,
  * resetState() zeroes everything to prevent micro-drift.
  */
-const float SETTLED_THRESHOLD = 0.001f;
+constexpr float SETTLED_THRESHOLD = 0.001f;
 
 /* RECALL_FREQ: Pattern mis-calibration oscillation speed
  *
@@ -89,7 +89,7 @@ const float SETTLED_THRESHOLD = 0.001f;
  * Lower frequencies look like imperfect recall of the
  * recoil curve rather than uncontrolled shaking.
  */
-const float RECALL_FREQ = 0.1f;
+constexpr float RECALL_FREQ = 0.1f;
 
 /* RECALL_AMP: Pattern mis-calibration strength
  *
@@ -98,7 +98,7 @@ const float RECALL_FREQ = 0.1f;
  *
  * Rhythmic error tied to shot index.
  */
-const float RECALL_AMP = 0.02f;
+constexpr float RECALL_AMP = 0.02f;
 
 /* SMOOTHSTEP_A / SMOOTHSTEP_B: S-curve coefficients
  *
@@ -108,5 +108,5 @@ const float RECALL_AMP = 0.02f;
  * Softens the acceleration limit so small corrections
  * are slightly suppressed and large ones ramp naturally.
  */
-const float SMOOTHSTEP_A = 3.0f;
-const float SMOOTHSTEP_B = 2.0f;
+constexpr float SMOOTHSTEP_A = 3.0f;
+constexpr float SMOOTHSTEP_B = 2.0f;

@@ -7,7 +7,7 @@ std::mt19937 gen(rd());
 
 namespace random
 {
-  float rangeFloat(float min, float max)
+  inline float rangeFloat(float min, float max)
   {
     std::uniform_real_distribution<float> dis(min, max);
 
