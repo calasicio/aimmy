@@ -46,6 +46,7 @@ namespace offsets
 
   namespace C_BasePlayerPawn
   {
+    inline std::ptrdiff_t m_pMovementServices = 0x1248;
     inline std::ptrdiff_t m_vOldOrigin = 0x13B8;
   }
 
@@ -75,6 +76,7 @@ namespace offsets
     inline std::ptrdiff_t m_pGameSceneNode = 0x330;
     inline std::ptrdiff_t m_iHealth = 0x34C;
     inline std::ptrdiff_t m_iTeamNum = 0x3E7;
+    inline std::ptrdiff_t m_vecAbsVelocity = 0x3F8;
 
     namespace CBasePlayerController
     {
@@ -83,4 +85,8 @@ namespace offsets
     }
   }
 
+  namespace CPlayer_MovementServices
+  {
+    inline std::ptrdiff_t m_flMaxspeed = 0x1AC;
+  }
 }

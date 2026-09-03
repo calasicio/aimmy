@@ -1,6 +1,7 @@
 #pragma once
 
 #include "features/rcs/rcs.hpp"
+#include "features/auto_strafe/auto_strafe.hpp"
 
 class Cheat
 {
@@ -30,6 +31,7 @@ private:
 
 private:
   RCS rcs;
+  AutoStrafe autoStrafe;
 
 private:
   bool isRunning = true;

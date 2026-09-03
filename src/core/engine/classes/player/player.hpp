@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "core/engine/types/vector2.hpp"
 #include "core/engine/types/vector3.hpp"
 
 class Player

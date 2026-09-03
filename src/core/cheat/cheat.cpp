@@ -44,6 +44,7 @@ void Cheat::threadImpl()
     lastFrame = now;
 
     rcs.update(dt);
+    autoStrafe.update(dt);
 
     std::this_thread::sleep_until(now + std::chrono::milliseconds(1));
   }

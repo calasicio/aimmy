@@ -1,7 +1,9 @@
 #include "local_player.hpp"
 
+#include "core/engine/cache/cache.hpp"
 #include "core/engine/engine.hpp"
 #include "core/offsets/offsets.hpp"
+#include "utils/logger/logger.hpp"
 
 struct CUtlVector_t
 {
@@ -55,7 +57,12 @@ bool LocalPlayer::updatePawn()
   auto process = Engine::getProcess();
   auto client = Engine::getClient();
 
+  std::uintptr_t movementService = process->read<std::uintptr_t>(this->pawn + offsets::C_BasePlayerPawn::m_pMovementServices);
+  this->maxMovementSpeed = process->read<float>(movementService + offsets::CPlayer_MovementServices::m_flMaxspeed);
+
   this->viewAngle = process->read<Vector3>(client.base + offsets::dwViewAngles);
+
+  updateVelocity();
 
   Vector3 eyeOffset = process->read<Vector3>(this->pawn + offsets::C_BaseModelEntity::m_vecViewOffset);
   this->cameraPos = this->origin + eyeOffset;
@@ -84,4 +91,20 @@ bool LocalPlayer::updateAimPunch()
 
   this->aimPunch = process->read<Vector3>(aimPunchCache.data + (aimPunchCache.count - 1) * sizeof(Vector3));
   return true;
+}
+
+void LocalPlayer::updateVelocity()
+{
+  auto process = Engine::getProcess();
+
+  this->velocity = process->read<Vector3>(this->pawn + offsets::C_BaseEntity::m_vecAbsVelocity);
+
+  float yawRadians = this->viewAngle.y * (3.14159265f / 180.0f);
+  float fwdX = std::cos(yawRadians);
+  float fwdY = std::sin(yawRadians);
+  float rgtX = std::sin(yawRadians);
+  float rgtY = -std::cos(yawRadians);
+
+  this->relVelocity.x = (this->velocity.x * fwdX) + (this->velocity.y * fwdY);
+  this->relVelocity.y = (this->velocity.x * rgtX) + (this->velocity.y * rgtY);
 }

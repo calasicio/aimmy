@@ -35,6 +35,11 @@ bool ConVars::update()
   if (!initialized)
     return false;
 
+  accelerate = getFloat("sv_accelerate", 5.5f);
+  stopSpeed = getFloat("sv_stopspeed", 80.0f);
+  friction = getFloat("sv_friction", 5.2f);
+  maxSpeed = getFloat("sv_maxspeed", 320.0f);
+
   sensitivity = getFloat("sensitivity", 1.0f);
 
   hudScaling = getFloat("hud_scaling", 0.67f);

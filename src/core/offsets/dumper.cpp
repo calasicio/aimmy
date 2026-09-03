@@ -242,6 +242,12 @@ bool Dumper::loadOffsets()
   // C_BasePlayerPawn
   success &= readOffset(
       clientDLLData,
+      offsets::C_BasePlayerPawn::m_pMovementServices,
+      "m_pMovementServices",
+      {"client.dll", "classes", "C_BasePlayerPawn", "fields", "m_pMovementServices"});
+
+  success &= readOffset(
+      clientDLLData,
       offsets::C_BasePlayerPawn::m_vOldOrigin,
       "m_vOldOrigin",
       {"client.dll", "classes", "C_BasePlayerPawn", "fields", "m_vOldOrigin"});
@@ -299,6 +305,12 @@ bool Dumper::loadOffsets()
       "m_iTeamNum",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_iTeamNum"});
 
+  success &= readOffset(
+      clientDLLData,
+      offsets::C_BaseEntity::m_vecAbsVelocity,
+      "m_vecAbsVelocity",
+      {"client.dll", "classes", "C_BaseEntity", "fields", "m_vecAbsVelocity"});
+
   // |- CBasePlayerController
   success &= readOffset(
       clientDLLData,
@@ -311,6 +323,13 @@ bool Dumper::loadOffsets()
       offsets::C_BaseEntity::CBasePlayerController::m_bIsLocalPlayerController,
       "m_bIsLocalPlayerController",
       {"client.dll", "classes", "CBasePlayerController", "fields", "m_bIsLocalPlayerController"});
+
+  // CPlayer_MovementServices
+  success &= readOffset(
+      clientDLLData,
+      offsets::CPlayer_MovementServices::m_flMaxspeed,
+      "m_flMaxspeed",
+      {"client.dll", "classes", "CPlayer_MovementServices", "fields", "m_flMaxspeed"});
 
   return success;
 }
