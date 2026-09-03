@@ -86,7 +86,7 @@ void Engine::thread()
 
     Cache::update();
 
-    std::this_thread::sleep_until(now + std::chrono::milliseconds(1));
+    std::this_thread::sleep_until(now + std::chrono::milliseconds(6));
   }
 }
 
