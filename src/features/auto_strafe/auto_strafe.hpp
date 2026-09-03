@@ -2,18 +2,12 @@
 
 #include "core/engine/cache/cache.hpp"
 
-struct KeyState
-{
-  bool state = false;
-  float time = 0.0;
-};
-
 struct MovementState
 {
-  KeyState W_KEY;
-  KeyState A_KEY;
-  KeyState S_KEY;
-  KeyState D_KEY;
+  bool W_KEY;
+  bool A_KEY;
+  bool S_KEY;
+  bool D_KEY;
 };
 
 class AutoStrafe
@@ -28,6 +22,4 @@ private:
 
 private:
   void resetState();
-
-  float getTimeToStop(const Cache &cache, float speed);
 };
