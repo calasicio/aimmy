@@ -21,6 +21,8 @@ jobs:
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
       - name: Cache CMake configure
         uses: actions/cache@v4
@@ -28,31 +30,31 @@ jobs:
           path: |
             ${{ env.BUILD_DIR }}/CMakeFiles
             ${{ env.BUILD_DIR }}/_deps
-          key: ${{ runner.os }}-cmake-${{ hashFiles('CMakeLists.txt') }}
+          key: ${{ runner.os }}-ninja-${{ hashFiles('CMakeLists.txt') }}
           restore-keys: |
-            ${{ runner.os }}-cmake-
+            ${{ runner.os }}-ninja-
 
       - name: Configure CMake
-        run: cmake -B ${{ env.BUILD_DIR }} -S ${{ github.workspace }} -G "Visual Studio 17 2022" -A x64
+        run: cmake -B ${{ env.BUILD_DIR }} -S ${{ github.workspace }} -G "Ninja Multi-Config" -DCMAKE_CXX_COMPILER=cl
 
       - name: Build Debug
         run: cmake --build ${{ env.BUILD_DIR }} --config Debug --parallel
-
-      - name: Build Release
-        run: cmake --build ${{ env.BUILD_DIR }} --config Release --parallel
 
       - name: Upload Debug Artifact
         uses: actions/upload-artifact@v4
         with:
           name: aimmy-debug
-          path: ${{ env.BUILD_DIR }}/bin/Debug/aimmy.exe
+          path: ${{ env.BUILD_DIR }}/bin/aimmy.exe
           retention-days: 7
+
+      - name: Build Release
+        run: cmake --build ${{ env.BUILD_DIR }} --config Release --parallel
 
       - name: Upload Release Artifact
         uses: actions/upload-artifact@v4
         with:
           name: aimmy-release
-          path: ${{ env.BUILD_DIR }}/bin/Release/aimmy.exe
+          path: ${{ env.BUILD_DIR }}/bin/aimmy.exe
           retention-days: 30
 
   release:
@@ -78,7 +80,9 @@ jobs:
           $name = "aimmy-${{ github.ref_name }}"
           New-Item -ItemType Directory -Force -Path "$name"
           Copy-Item "dist/aimmy.exe" "$name/"
-          Copy-Item "runtime/cs2-dumper.exe" "$name/"
+          if (Test-Path "runtime/cs2-dumper.exe") {
+            Copy-Item "runtime/cs2-dumper.exe" "$name/"
+          }
           Compress-Archive -Path "$name" -DestinationPath "$name.zip"
 
       - name: Create GitHub Release
