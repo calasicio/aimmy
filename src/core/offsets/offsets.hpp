@@ -8,8 +8,6 @@ namespace offsets
   inline std::ptrdiff_t dwLocalPlayerController = 0x23A0F30;
   inline std::ptrdiff_t dwLocalPlayerPawn = 0x23C6268;
   inline std::ptrdiff_t dwEntityList = 0x2571220;
-  inline std::ptrdiff_t dwSensitivity = 0x23C3578;
-  inline std::ptrdiff_t dwSensitivity_sensitivity = 0x58;
   inline std::ptrdiff_t dwViewAngles = 0x23DC2F8;
   inline std::ptrdiff_t dwViewMatrix = 0x23CB830;
 

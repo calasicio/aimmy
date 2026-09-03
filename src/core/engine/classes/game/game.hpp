@@ -13,7 +13,6 @@ public:
   bool update();
 
 public:
-  float sensitivity = 1.0;
   ViewMatrix viewMatrix;
 
   uintptr_t entityList;

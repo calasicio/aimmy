@@ -36,8 +36,8 @@ void RCS::update(float dt)
       Vector2 deltaPunch = limitedDeltaPunch;
 
       Vector2 moveAmount = {
-          (deltaPunch.y / cache.game.sensitivity) / -YAW_PITCH_FACTOR + accumulatedError.x,
-          (deltaPunch.x / cache.game.sensitivity) / YAW_PITCH_FACTOR + accumulatedError.y};
+          (deltaPunch.y / (cache.convars.sensitivity * -YAW_PITCH_FACTOR)) + accumulatedError.x,
+        (deltaPunch.x / (cache.convars.sensitivity * YAW_PITCH_FACTOR)) + accumulatedError.y};
 
       int moveX = static_cast<int>(moveAmount.x);
       int moveY = static_cast<int>(moveAmount.y);
@@ -57,7 +57,7 @@ void RCS::update(float dt)
     }
 
     Vector2 rawDeltaPunch = (currentAimPunch - oldAimPunch);
-    rawDeltaPunch = -rawDeltaPunch * CORRECTION_FACTOR;
+    rawDeltaPunch = -rawDeltaPunch * 2;
 
     // Pattern recall imperfection (slight rhythmic mis-calibration)
     {
@@ -112,8 +112,8 @@ void RCS::update(float dt)
     }
 
     Vector2 moveAmount = {
-        (deltaPunch.y / cache.game.sensitivity) / -YAW_PITCH_FACTOR + accumulatedError.x,
-        (deltaPunch.x / cache.game.sensitivity) / YAW_PITCH_FACTOR + accumulatedError.y};
+        (rawDeltaPunch.y / (cache.convars.sensitivity * -YAW_PITCH_FACTOR)) + accumulatedError.x,
+        (rawDeltaPunch.x / (cache.convars.sensitivity * YAW_PITCH_FACTOR)) + accumulatedError.y};
 
     int moveX = static_cast<int>(moveAmount.x);
     int moveY = static_cast<int>(moveAmount.y);

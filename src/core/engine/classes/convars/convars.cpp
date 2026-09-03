@@ -35,6 +35,8 @@ bool ConVars::update()
   if (!initialized)
     return false;
 
+  sensitivity = getFloat("sensitivity", 1.0f);
+
   hudScaling = getFloat("hud_scaling", 0.67f);
   safeZoneX = getFloat("safezonex", 0.67f);
   safeZoneY = getFloat("safezoney", 0.67f);

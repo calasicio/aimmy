@@ -18,6 +18,8 @@ public:
   int32_t getInt(const char *name, int32_t defaultValue = 0);
   bool getBool(const char *name, bool defaultValue = false);
 
+  float sensitivity = 1.0f;
+
   float hudScaling = 0.0f;
   float safeZoneX = 0.0f;
   float safeZoneY = 0.0f;

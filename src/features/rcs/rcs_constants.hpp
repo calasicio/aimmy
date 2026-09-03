@@ -1,12 +1,3 @@
-/* CORRECTION_FACTOR: Feed-forward gain on recoil disturbance
- *
- * Value: Higher = stronger compensation per frame
- *        Lower  = weaker compensation, more residual drift
- *
- * Tuned empirically to match the weapon's recoil impulse.
- */
-const float CORRECTION_FACTOR = 3.37f;
-
 /* YAW_PITCH_FACTOR: Game engine degrees-to-mouse scaling
  *
  * Value: 0.022 = Source engine default (CS2/CS:GO)

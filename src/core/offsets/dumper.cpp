@@ -217,18 +217,6 @@ bool Dumper::loadOffsets()
 
   success &= readOffset(
       offsetsData,
-      offsets::dwSensitivity,
-      "dwSensitivity",
-      {"client.dll", "dwSensitivity"});
-
-  success &= readOffset(
-      offsetsData,
-      offsets::dwSensitivity_sensitivity,
-      "dwSensitivity_sensitivity",
-      {"client.dll", "dwSensitivity_sensitivity"});
-
-  success &= readOffset(
-      offsetsData,
       offsets::dwViewAngles,
       "dwViewAngles",
       {"client.dll", "dwViewAngles"});
