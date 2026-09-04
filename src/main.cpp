@@ -6,6 +6,7 @@
 #include "core/engine/engine.hpp"
 #include "core/cheat/cheat.hpp"
 #include "gui/renderer/renderer.hpp"
+#include "utils/keys/keys.hpp"
 #include "utils/logger/logger.hpp"
 
 int main()
@@ -31,7 +32,11 @@ int main()
     goto exit;
   }
 
+  keys::installHook();
+
   Renderer::thread();
+
+  keys::uninstallHook();
 
   return 0;
 exit:
