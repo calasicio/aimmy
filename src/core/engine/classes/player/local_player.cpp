@@ -42,7 +42,7 @@ bool LocalPlayer::getController()
   auto process = Engine::getProcess();
   auto client = Engine::getClient();
 
-  this->controller = process->read<std::uintptr_t>(client.base + offsets::player::localplayer::dwLocalPlayerPawn);
+  this->controller = process->read<std::uintptr_t>(client.base + offsets::player::localplayer::dwLocalPlayerController);
   return this->controller != 0;
 }
 
@@ -60,6 +60,8 @@ bool LocalPlayer::updatePawn()
   this->viewAngle = process->read<Vector3>(client.base + offsets::player::localplayer::dwViewAngles);
 
   updateVelocity();
+  updateMovement();
+  updateWeapon();
 
   Vector3 eyeOffset = process->read<Vector3>(this->pawn + offsets::entities::base::m_vecViewOffset);
   this->cameraPos = this->origin + eyeOffset;
@@ -114,4 +116,37 @@ void LocalPlayer::updateMovement()
   this->isOnGround = (flags & (1 << 0));
 
   this->moveType = process->read<uint8_t>(this->pawn + offsets::entities::base::m_MoveType);
+}
+
+void LocalPlayer::updateWeapon()
+{
+  auto process = Engine::getProcess();
+  Cache &cache = Cache::getInstance();
+
+  std::uintptr_t weaponServices = process->read<uintptr_t>(this->pawn + offsets::weapon::m_pWeaponServices);
+  if (!weaponServices)
+    return;
+
+  uint32_t activeWeaponHandle = process->read<uint32_t>(weaponServices + offsets::weapon::m_hActiveWeapon);
+  if (activeWeaponHandle == 0xFFFFFFFF || activeWeaponHandle == 0)
+    return;
+
+  uintptr_t listEntry = process->read<uintptr_t>(cache.game.entityList + 0x10 + 8 * ((activeWeaponHandle & 0x7FFF) >> 9));
+  if (!listEntry)
+    return;
+
+  uintptr_t weaponEntity = process->read<uintptr_t>(listEntry + 0x70 * (activeWeaponHandle & 0x1FF));
+  if (!weaponEntity)
+    return;
+
+  // this->currentWeaponID = process->read<uint16_t>(
+  //     weaponEntity + offsets::weapon::m_AttributeManager + offsets::weapon::m_Item + offsets::weapon::m_iItemDefinitionIndex);
+
+  uintptr_t vData = process->read<uintptr_t>(weaponEntity + offsets::entities::base::m_nSubclassID + 0x08);
+
+  if (!vData) {
+    return;
+  }
+
+  this->maxMovementSpeed = process->read<float>(vData + offsets::entities::base::m_flMaxSpeed);
 }

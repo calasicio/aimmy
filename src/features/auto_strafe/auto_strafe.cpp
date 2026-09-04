@@ -30,9 +30,14 @@ void AutoStrafe::update(float dt)
       return;
     }
 
+    if (!cache.localPlayer.isOnGround || cache.localPlayer.moveType != 2) {
+      resetState();
+      return;
+    }
+
     Vector2 relVelocity = cache.localPlayer.relVelocity;
 
-    if (std::abs(relVelocity.x) > 70)
+    if (std::abs(relVelocity.x) > cache.convars.svStopSpeed * 0.6)
     {
       if (relVelocity.x > 0.0f && !this->state.S_KEY)
       {
@@ -47,14 +52,14 @@ void AutoStrafe::update(float dt)
     }
     else
     {
-      if (this->state.S_KEY)
+      if (this->state.S_KEY && shouldRelease(cache, relVelocity.x))
       {
         if (!keys::isHumanHoldingKey('S')) {
           keys::sendKeyUp('S');
         }
         this->state.S_KEY = false;
       }
-      if (this->state.W_KEY)
+      if (this->state.W_KEY && shouldRelease(cache, relVelocity.x))
       {
         if (!keys::isHumanHoldingKey('W')) {
           keys::sendKeyUp('W');
@@ -63,7 +68,7 @@ void AutoStrafe::update(float dt)
       }
     }
 
-    if (std::abs(relVelocity.y) > 70)
+    if (std::abs(relVelocity.y) > cache.convars.svStopSpeed * 0.6)
     {
       if (relVelocity.y > 0.0f && !this->state.A_KEY)
       {
@@ -78,14 +83,14 @@ void AutoStrafe::update(float dt)
     }
     else
     {
-      if (this->state.A_KEY)
+      if (this->state.A_KEY && shouldRelease(cache, relVelocity.y))
       {
         if (!keys::isHumanHoldingKey('A')) {
           keys::sendKeyUp('A');
         }
         this->state.A_KEY = false;
       }
-      if (this->state.D_KEY)
+      if (this->state.D_KEY && shouldRelease(cache, relVelocity.y))
       {
         if (!keys::isHumanHoldingKey('D')) {
           keys::sendKeyUp('D');
@@ -93,6 +98,39 @@ void AutoStrafe::update(float dt)
         this->state.D_KEY = false;
       }
     } });
+}
+
+bool AutoStrafe::shouldRelease(const Cache &cache, float currentVel)
+{
+  constexpr float GAME_TICK_INTERVAL = 1.0f / 64.0f;
+
+  float vel = currentVel;
+
+  for (int i = 0; i < 3; ++i)
+  {
+    float speed = std::abs(vel);
+    float control = (speed < cache.convars.svStopSpeed) ? cache.convars.svStopSpeed : speed;
+    float drop = control * cache.convars.svFriction * GAME_TICK_INTERVAL;
+    speed = std::max<float>(0.0f, speed - drop);
+    vel = (vel > 0.0f) ? speed : -speed;
+
+    float accelSpeed = cache.convars.svAccelerate * GAME_TICK_INTERVAL * cache.localPlayer.maxMovementSpeed;
+    if (currentVel > 0.0f)
+    {
+      vel -= accelSpeed;
+    }
+    else
+    {
+      vel += accelSpeed;
+    }
+
+    if ((currentVel > 0.0f && vel <= 0.0f) || (currentVel < 0.0f && vel >= 0.0f))
+    {
+      return true;
+    }
+  }
+
+  return std::abs(currentVel) <= cache.convars.svStopSpeed * 0.6;
 }
 
 void AutoStrafe::resetState()

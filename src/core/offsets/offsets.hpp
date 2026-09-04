@@ -30,9 +30,11 @@ namespace offsets
     {
       // client.dll -> [client_dll] -> [C_BaseEntity]
       inline std::ptrdiff_t m_pGameSceneNode = 0x330;
-
+      
       // client.dll -> [client_dll] -> [C_BaseEntity]
       inline std::ptrdiff_t m_iHealth = 0x34C;
+      // client.dll -> [client_dll] -> [C_BaseEntity]
+      inline std::ptrdiff_t m_nSubclassID = 0x380;
       // client.dll -> [client_dll] -> [C_BaseEntity]
       inline std::ptrdiff_t m_iTeamNum = 0x3E7;
       // client.dll -> [client_dll] -> [C_BaseEntity]
@@ -49,6 +51,9 @@ namespace offsets
       inline std::ptrdiff_t m_vecOrigin = 0x80;
       // client.dll -> [client_dll] -> [CSkeletonInstance]
       inline std::ptrdiff_t m_modelState = 0x140;
+      
+      // client.dll -> [client_dll] -> [CCSWeaponBaseVData]
+      inline std::ptrdiff_t m_flMaxSpeed = 0x750;
     }
   }
 
@@ -75,18 +80,27 @@ namespace offsets
     namespace pawn
     {
       // client.dll -> [client_dll] -> [C_BasePlayerPawn]
-      inline std::ptrdiff_t m_pWeaponServices = 0x1208;
-      // client.dll -> [client_dll] -> [C_BasePlayerPawn]
       inline std::ptrdiff_t m_vOldOrigin = 0x13B8;
-
-      // client.dll -> [client_dll] -> [CPlayer_WeaponServices]
-      inline std::ptrdiff_t m_hActiveWeapon = 0x60;
 
       // client.dll -> [client_dll] -> [C_CSPlayerPawn]
       inline std::ptrdiff_t m_iShotsFired = 0x1C8C;
       // client.dll -> [client_dll] -> [C_CSPlayerPawn]
       inline std::ptrdiff_t m_pAimPunchServices = 0x14B8;
     }
+  }
+
+  namespace weapon
+  {
+    // client.dll -> [client_dll] -> [C_BasePlayerPawn]
+    inline std::ptrdiff_t m_pWeaponServices = 0x1208;
+    // client.dll -> [client_dll] -> [CPlayer_WeaponServices]
+    inline std::ptrdiff_t m_hActiveWeapon = 0x60;
+    // client.dll -> [client_dll] -> [C_EconEntity]
+    inline std::ptrdiff_t m_AttributeManager = 0x11A8;
+    // client.dll -> [client_dll] -> [C_AttributeContainer]
+    inline std::ptrdiff_t m_Item = 0x50;
+    // client.dll -> [client_dll] -> [C_EconItemView]
+    inline std::ptrdiff_t m_iItemDefinitionIndex = 0x1BA;
   }
 
   namespace hud

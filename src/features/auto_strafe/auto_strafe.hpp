@@ -22,4 +22,5 @@ private:
 
 private:
   void resetState();
+  bool shouldRelease(const Cache &cache, float currentVel);
 };

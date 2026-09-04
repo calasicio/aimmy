@@ -32,4 +32,5 @@ private:
 
   void updateVelocity();
   void updateMovement();
+  void updateWeapon();
 };

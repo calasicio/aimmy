@@ -230,6 +230,12 @@ bool Dumper::loadOffsets()
 
   success &= readOffset(
       clientDLLData,
+      offsets::entities::base::m_nSubclassID,
+      "m_nSubclassID",
+      {"client.dll", "classes", "C_BaseEntity", "fields", "m_nSubclassID"});
+
+  success &= readOffset(
+      clientDLLData,
       offsets::entities::base::m_iTeamNum,
       "m_iTeamNum",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_iTeamNum"});
@@ -270,6 +276,12 @@ bool Dumper::loadOffsets()
       "m_modelState",
       {"client.dll", "classes", "C_BaseModelEntity", "fields", "m_modelState"});
 
+  success &= readOffset(
+      clientDLLData,
+      offsets::entities::base::m_flMaxSpeed,
+      "m_flMaxSpeed",
+      {"client.dll", "classes", "C_BaseModelEntity", "fields", "m_flMaxSpeed"});
+
   // | Player
 
   // |-- Local player
@@ -307,21 +319,9 @@ bool Dumper::loadOffsets()
   // |-- Pawn
   success &= readOffset(
       clientDLLData,
-      offsets::player::pawn::m_pWeaponServices,
-      "m_pWeaponServices",
-      {"client.dll", "classes", "C_BasePlayerPawn", "fields", "m_pWeaponServices"});
-
-  success &= readOffset(
-      clientDLLData,
       offsets::player::pawn::m_vOldOrigin,
       "m_vOldOrigin",
       {"client.dll", "classes", "C_BasePlayerPawn", "fields", "m_vOldOrigin"});
-
-  success &= readOffset(
-      clientDLLData,
-      offsets::player::pawn::m_hActiveWeapon,
-      "m_hActiveWeapon",
-      {"client.dll", "classes", "CPlayer_WeaponServices", "fields", "m_hActiveWeapon"});
 
   success &= readOffset(
       clientDLLData,
@@ -334,6 +334,37 @@ bool Dumper::loadOffsets()
       offsets::player::pawn::m_pAimPunchServices,
       "m_pAimPunchServices",
       {"client.dll", "classes", "C_CSPlayerPawn", "fields", "m_pAimPunchServices"});
+
+  // | Weapon
+  success &= readOffset(
+      clientDLLData,
+      offsets::weapon::m_pWeaponServices,
+      "m_pWeaponServices",
+      {"client.dll", "classes", "C_BasePlayerPawn", "fields", "m_pWeaponServices"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::weapon::m_hActiveWeapon,
+      "m_hActiveWeapon",
+      {"client.dll", "classes", "CPlayer_WeaponServices", "fields", "m_hActiveWeapon"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::weapon::m_AttributeManager,
+      "m_AttributeManager",
+      {"client.dll", "classes", "C_EconEntity", "fields", "m_AttributeManager"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::weapon::m_Item,
+      "m_Item",
+      {"client.dll", "classes", "C_AttributeContainer", "fields", "m_Item"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::weapon::m_iItemDefinitionIndex,
+      "m_iItemDefinitionIndex",
+      {"client.dll", "classes", "C_EconItemView", "fields", "m_iItemDefinitionIndex"});
 
   return success;
 }
