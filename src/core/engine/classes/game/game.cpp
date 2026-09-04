@@ -10,13 +10,13 @@ bool Game::update()
   auto engine = Engine::getEngine();
 
   // Update view matrix
-  this->viewMatrix = process->read<ViewMatrix>(client.base + offsets::dwViewMatrix);
+  this->viewMatrix = process->read<ViewMatrix>(client.base + offsets::game::dwViewMatrix);
 
   // Update entity list and list entry
-  this->entityList = process->read<uintptr_t>(client.base + offsets::dwEntityList);
+  this->entityList = process->read<uintptr_t>(client.base + offsets::entities::dwEntityList);
   this->listEntry = process->read<uintptr_t>(this->entityList + 0x10);
 
-  uintptr_t viewRenderPtr = process->read<uintptr_t>(client.base + offsets::dwViewRender);
+  uintptr_t viewRenderPtr = process->read<uintptr_t>(client.base + offsets::game::dwViewRender);
 
   const int width = process->read<int>(viewRenderPtr + 0x440);
   const int height = process->read<int>(viewRenderPtr + 0x448);

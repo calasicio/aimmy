@@ -10,7 +10,7 @@ bool Hud::init()
   auto process = Engine::getProcess();
   auto client = Engine::getClient();
 
-  this->address = process->read<uintptr_t>(client.base + offsets::c_hud);
+  this->address = process->read<uintptr_t>(client.base + offsets::hud::cHud);
 
   if (this->address == 0)
     return false;
@@ -41,14 +41,14 @@ bool Hud::update()
   auto client = Engine::getClient();
   uintptr_t base = this->radarHudElementAddress;
 
-  this->snapshot.isRound = process->read<bool>(base + offsets::CCSGO_HudRadar::IsRound);
-  this->snapshot.mapTexturePosition = process->read<Vector3>(base + offsets::CCSGO_HudRadar::MapTexturePosition);
-  this->snapshot.visibilitySizeMax = process->read<float>(base + offsets::CCSGO_HudRadar::VisibilitySizeMax);
-  this->snapshot.visibilitySize = process->read<float>(base + offsets::CCSGO_HudRadar::VisibilitySize);
-  this->snapshot.mapTextureScale = process->read<float>(base + offsets::CCSGO_HudRadar::MapTextureScale);
-  this->snapshot.maxVisibilitySquared = process->read<float>(base + offsets::CCSGO_HudRadar::MaxVisibilitySquared);
-  this->snapshot.originTexturePositionDifference = process->read<Vector3>(base + offsets::CCSGO_HudRadar::OriginTextureDiff);
-  this->snapshot.radarScale = process->read<float>(base + offsets::CCSGO_HudRadar::RadarScale);
+  this->snapshot.isRound = process->read<bool>(base + offsets::hud::CCSGO_HudRadar::IsRound);
+  this->snapshot.mapTexturePosition = process->read<Vector3>(base + offsets::hud::CCSGO_HudRadar::MapTexturePosition);
+  this->snapshot.visibilitySizeMax = process->read<float>(base + offsets::hud::CCSGO_HudRadar::VisibilitySizeMax);
+  this->snapshot.visibilitySize = process->read<float>(base + offsets::hud::CCSGO_HudRadar::VisibilitySize);
+  this->snapshot.mapTextureScale = process->read<float>(base + offsets::hud::CCSGO_HudRadar::MapTextureScale);
+  this->snapshot.maxVisibilitySquared = process->read<float>(base + offsets::hud::CCSGO_HudRadar::MaxVisibilitySquared);
+  this->snapshot.originTexturePositionDifference = process->read<Vector3>(base + offsets::hud::CCSGO_HudRadar::OriginTextureDiff);
+  this->snapshot.radarScale = process->read<float>(base + offsets::hud::CCSGO_HudRadar::RadarScale);
 
   this->snapshot.isValid = isSnapshotValid(this->snapshot);
 
@@ -101,9 +101,9 @@ std::uintptr_t Hud::findHudElement(const char *targetName)
 {
   auto process = Engine::getProcess();
 
-  int rootIndex = process->read<int>(this->address + offsets::CCSGO_HudTree::Base + 0x18);
-  uint32_t treeFlags = process->read<uint32_t>(this->address + offsets::CCSGO_HudTree::Base + 0x0C);
-  uintptr_t dataPool = process->read<uintptr_t>(this->address + offsets::CCSGO_HudTree::Pool);
+  int rootIndex = process->read<int>(this->address + offsets::hud::CCSGO_HudTree::Base + 0x18);
+  uint32_t treeFlags = process->read<uint32_t>(this->address + offsets::hud::CCSGO_HudTree::Base + 0x0C);
+  uintptr_t dataPool = process->read<uintptr_t>(this->address + offsets::hud::CCSGO_HudTree::Pool);
 
   if (rootIndex == -1 || dataPool == 0)
     return 0;

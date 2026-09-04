@@ -17,7 +17,7 @@ bool Dumper::init()
 
 bool Dumper::initImpl()
 {
-  logger::info("Finding `c_hud` offset...");
+  logger::info("Finding `cHud` offset...");
   findCHud();
 
   logger::info("Finding `CCVar` offset...");
@@ -42,24 +42,22 @@ bool Dumper::findCHud()
 
   if (sigAddr != 0)
   {
-    logger::info("Found HUD manager function at: " + std::to_string(sigAddr));
-
     std::uintptr_t displacementAddress = sigAddr + 0xEF + 3;
 
     int32_t relativeOffset = process->read<int32_t>(displacementAddress);
 
     uintptr_t cHudAbsoluteAddress = displacementAddress + 4 + relativeOffset;
 
-    offsets::c_hud = cHudAbsoluteAddress - client.base;
+    offsets::hud::cHud = cHudAbsoluteAddress - client.base;
 
     char hexStr[32];
-    sprintf_s(hexStr, "0x%llX", offsets::c_hud);
-    logger::info(std::string("Offset `c_hud` found at ") + hexStr);
+    sprintf_s(hexStr, "0x%llX", offsets::hud::cHud);
+    logger::info(std::string("Offset `cHud` found at ") + hexStr);
   }
   else
   {
     logger::error(
-        "Could not find `c_hud` offset, using default offset value. Radar may or may not work.");
+        "Could not find `cHud` offset, using default offset value. Radar may or may not work.");
 
     return false;
   }
@@ -90,10 +88,10 @@ bool Dumper::findCCVar()
     process->read_raw(sigAddr + 3, &rel, sizeof(rel));
     uintptr_t cvarIf = sigAddr + 7 + rel;
 
-    offsets::CCVars = cvarIf - tier0.base;
+    offsets::game::CCVars = cvarIf - tier0.base;
 
     char hexStr[32];
-    sprintf_s(hexStr, "0x%llX", offsets::CCVars);
+    sprintf_s(hexStr, "0x%llX", offsets::game::CCVars);
     logger::info(std::string("Offset `CCVar` found at ") + hexStr);
   }
   else
@@ -190,127 +188,152 @@ bool Dumper::loadOffsets()
 
   bool success = true;
 
-  // Base Offsets
+  // | Globals
   success &= readOffset(
       offsetsData,
-      offsets::dwGlobalVars,
+      offsets::globals::dwGlobalVars,
       "dwGlobalVars",
       {"client.dll", "dwGlobalVars"});
 
+  // | Game
   success &= readOffset(
       offsetsData,
-      offsets::dwLocalPlayerController,
-      "dwLocalPlayerController",
-      {"client.dll", "dwLocalPlayerController"});
-
-  success &= readOffset(
-      offsetsData,
-      offsets::dwLocalPlayerPawn,
-      "dwLocalPlayerPawn",
-      {"client.dll", "dwLocalPlayerPawn"});
-
-  success &= readOffset(
-      offsetsData,
-      offsets::dwEntityList,
-      "dwEntityList",
-      {"client.dll", "dwEntityList"});
-
-  success &= readOffset(
-      offsetsData,
-      offsets::dwViewAngles,
-      "dwViewAngles",
-      {"client.dll", "dwViewAngles"});
-
-  success &= readOffset(
-      offsetsData,
-      offsets::dwViewMatrix,
+      offsets::game::dwViewMatrix,
       "dwViewMatrix",
       {"client.dll", "dwViewMatrix"});
 
   success &= readOffset(
       offsetsData,
-      offsets::dwViewRender,
+      offsets::game::dwViewRender,
       "dwViewRender",
       {"client.dll", "dwViewRender"});
 
-  // C_BasePlayerPawn
+  // | Entities
   success &= readOffset(
-      clientDLLData,
-      offsets::C_BasePlayerPawn::m_vOldOrigin,
-      "m_vOldOrigin",
-      {"client.dll", "classes", "C_BasePlayerPawn", "fields", "m_vOldOrigin"});
+      offsetsData,
+      offsets::entities::dwEntityList,
+      "dwEntityList",
+      {"client.dll", "dwEntityList"});
 
-  // C_BaseModelEntity
+  // |-- Base
   success &= readOffset(
       clientDLLData,
-      offsets::C_BaseModelEntity::m_vecViewOffset,
-      "m_vecViewOffset",
-      {"client.dll", "classes", "C_BaseModelEntity", "fields", "m_vecViewOffset"});
-
-  // C_CSPlayerPawn
-  success &= readOffset(
-      clientDLLData,
-      offsets::C_CSPlayerPawn::m_iShotsFired,
-      "m_iShotsFired",
-      {"client.dll", "classes", "C_CSPlayerPawn", "fields", "m_iShotsFired"});
-
-  success &= readOffset(
-      clientDLLData,
-      offsets::C_CSPlayerPawn::m_pAimPunchServices,
-      "m_pAimPunchServices",
-      {"client.dll", "classes", "C_CSPlayerPawn", "fields", "m_pAimPunchServices"});
-
-  // CGameSceneNode
-  success &= readOffset(
-      clientDLLData,
-      offsets::CGameSceneNode::m_vecOrigin,
-      "m_vecOrigin",
-      {"client.dll", "classes", "CGameSceneNode", "fields", "m_vecOrigin"});
-
-  // |- CSkeletonInstance
-  success &= readOffset(
-      clientDLLData,
-      offsets::CGameSceneNode::CSkeletonInstance::m_modelState,
-      "m_modelState",
-      {"client.dll", "classes", "CSkeletonInstance", "fields", "m_modelState"});
-
-  // C_BaseEntity
-  success &= readOffset(
-      clientDLLData,
-      offsets::C_BaseEntity::m_pGameSceneNode,
+      offsets::entities::base::m_pGameSceneNode,
       "m_pGameSceneNode",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_pGameSceneNode"});
 
   success &= readOffset(
       clientDLLData,
-      offsets::C_BaseEntity::m_iHealth,
+      offsets::entities::base::m_iHealth,
       "m_iHealth",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_iHealth"});
 
   success &= readOffset(
       clientDLLData,
-      offsets::C_BaseEntity::m_iTeamNum,
+      offsets::entities::base::m_iTeamNum,
       "m_iTeamNum",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_iTeamNum"});
 
   success &= readOffset(
       clientDLLData,
-      offsets::C_BaseEntity::m_vecAbsVelocity,
+      offsets::entities::base::m_fFlags,
+      "m_fFlags",
+      {"client.dll", "classes", "C_BaseEntity", "fields", "m_fFlags"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::entities::base::m_vecAbsVelocity,
       "m_vecAbsVelocity",
       {"client.dll", "classes", "C_BaseEntity", "fields", "m_vecAbsVelocity"});
 
-  // |- CBasePlayerController
   success &= readOffset(
       clientDLLData,
-      offsets::C_BaseEntity::CBasePlayerController::m_hPawn,
+      offsets::entities::base::m_MoveType,
+      "m_MoveType",
+      {"client.dll", "classes", "C_BaseEntity", "fields", "m_MoveType"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::entities::base::m_vecViewOffset,
+      "m_vecViewOffset",
+      {"client.dll", "classes", "C_BaseModelEntity", "fields", "m_vecViewOffset"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::entities::base::m_vecOrigin,
+      "m_vecOrigin",
+      {"client.dll", "classes", "C_BaseModelEntity", "fields", "m_vecOrigin"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::entities::base::m_modelState,
+      "m_modelState",
+      {"client.dll", "classes", "C_BaseModelEntity", "fields", "m_modelState"});
+
+  // | Player
+
+  // |-- Local player
+  success &= readOffset(
+      offsetsData,
+      offsets::player::localplayer::dwLocalPlayerController,
+      "dwLocalPlayerController",
+      {"client.dll", "dwLocalPlayerController"});
+
+  success &= readOffset(
+      offsetsData,
+      offsets::player::localplayer::dwLocalPlayerPawn,
+      "dwLocalPlayerPawn",
+      {"client.dll", "dwLocalPlayerPawn"});
+
+  success &= readOffset(
+      offsetsData,
+      offsets::player::localplayer::dwViewAngles,
+      "dwViewAngles",
+      {"client.dll", "dwViewAngles"});
+
+  // |-- Controller
+  success &= readOffset(
+      clientDLLData,
+      offsets::player::controller::m_hPawn,
       "m_hPawn",
       {"client.dll", "classes", "CBasePlayerController", "fields", "m_hPawn"});
 
   success &= readOffset(
       clientDLLData,
-      offsets::C_BaseEntity::CBasePlayerController::m_bIsLocalPlayerController,
+      offsets::player::controller::m_bIsLocalPlayerController,
       "m_bIsLocalPlayerController",
       {"client.dll", "classes", "CBasePlayerController", "fields", "m_bIsLocalPlayerController"});
+
+  // |-- Pawn
+  success &= readOffset(
+      clientDLLData,
+      offsets::player::pawn::m_pWeaponServices,
+      "m_pWeaponServices",
+      {"client.dll", "classes", "C_BasePlayerPawn", "fields", "m_pWeaponServices"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::player::pawn::m_vOldOrigin,
+      "m_vOldOrigin",
+      {"client.dll", "classes", "C_BasePlayerPawn", "fields", "m_vOldOrigin"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::player::pawn::m_hActiveWeapon,
+      "m_hActiveWeapon",
+      {"client.dll", "classes", "CPlayer_WeaponServices", "fields", "m_hActiveWeapon"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::player::pawn::m_iShotsFired,
+      "m_iShotsFired",
+      {"client.dll", "classes", "C_CSPlayerPawn", "fields", "m_iShotsFired"});
+
+  success &= readOffset(
+      clientDLLData,
+      offsets::player::pawn::m_pAimPunchServices,
+      "m_pAimPunchServices",
+      {"client.dll", "classes", "C_CSPlayerPawn", "fields", "m_pAimPunchServices"});
 
   return success;
 }

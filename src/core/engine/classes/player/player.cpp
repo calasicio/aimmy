@@ -34,7 +34,7 @@ bool Player::getPawn()
   auto process = Engine::getProcess();
   auto client = Engine::getClient();
 
-  auto entityPawnAddress = process->read<uintptr_t>(this->controller + offsets::C_BaseEntity::CBasePlayerController::m_hPawn);
+  auto entityPawnAddress = process->read<uintptr_t>(this->controller + offsets::player::controller::m_hPawn);
 
   if (!entityPawnAddress)
     return false;
@@ -53,7 +53,7 @@ bool Player::updatePawn()
 {
   auto process = Engine::getProcess();
 
-  this->health = process->read<int>(pawn + offsets::C_BaseEntity::m_iHealth);
+  this->health = process->read<int>(pawn + offsets::entities::base::m_iHealth);
   this->isAlive = health > 0;
 
   if (!isAlive)
@@ -62,8 +62,8 @@ bool Player::updatePawn()
     return true;
   }
 
-  this->origin = process->read<Vector3>(this->pawn + offsets::C_BasePlayerPawn::m_vOldOrigin);
-  this->teamNum = process->read<uint8_t>(this->pawn + offsets::C_BaseEntity::m_iTeamNum);
+  this->origin = process->read<Vector3>(this->pawn + offsets::player::pawn::m_vOldOrigin);
+  this->teamNum = process->read<uint8_t>(this->pawn + offsets::entities::base::m_iTeamNum);
 
   return true;
 }

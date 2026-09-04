@@ -33,7 +33,7 @@ bool LocalPlayer::getPawn()
   auto process = Engine::getProcess();
   auto client = Engine::getClient();
 
-  this->pawn = process->read<std::uintptr_t>(client.base + offsets::dwLocalPlayerPawn);
+  this->pawn = process->read<std::uintptr_t>(client.base + offsets::player::localplayer::dwLocalPlayerPawn);
   return this->pawn != 0;
 }
 
@@ -42,7 +42,7 @@ bool LocalPlayer::getController()
   auto process = Engine::getProcess();
   auto client = Engine::getClient();
 
-  this->controller = process->read<std::uintptr_t>(client.base + offsets::dwLocalPlayerController);
+  this->controller = process->read<std::uintptr_t>(client.base + offsets::player::localplayer::dwLocalPlayerPawn);
   return this->controller != 0;
 }
 
@@ -57,14 +57,14 @@ bool LocalPlayer::updatePawn()
   auto process = Engine::getProcess();
   auto client = Engine::getClient();
 
-  this->viewAngle = process->read<Vector3>(client.base + offsets::dwViewAngles);
+  this->viewAngle = process->read<Vector3>(client.base + offsets::player::localplayer::dwViewAngles);
 
   updateVelocity();
 
-  Vector3 eyeOffset = process->read<Vector3>(this->pawn + offsets::C_BaseModelEntity::m_vecViewOffset);
+  Vector3 eyeOffset = process->read<Vector3>(this->pawn + offsets::entities::base::m_vecViewOffset);
   this->cameraPos = this->origin + eyeOffset;
 
-  this->shotsFired = process->read<int>(this->pawn + offsets::C_CSPlayerPawn::m_iShotsFired);
+  this->shotsFired = process->read<int>(this->pawn + offsets::player::pawn::m_iShotsFired);
 
   if (!updateAimPunch())
   {
@@ -78,7 +78,7 @@ bool LocalPlayer::updateAimPunch()
 {
   auto process = Engine::getProcess();
 
-  const uintptr_t aimPunchServices = process->read<uintptr_t>(this->pawn + offsets::C_CSPlayerPawn::m_pAimPunchServices);
+  const uintptr_t aimPunchServices = process->read<uintptr_t>(this->pawn + offsets::player::pawn::m_pAimPunchServices);
   if (!aimPunchServices)
     return false;
 
@@ -94,7 +94,7 @@ void LocalPlayer::updateVelocity()
 {
   auto process = Engine::getProcess();
 
-  this->velocity = process->read<Vector3>(this->pawn + offsets::C_BaseEntity::m_vecAbsVelocity);
+  this->velocity = process->read<Vector3>(this->pawn + offsets::entities::base::m_vecAbsVelocity);
 
   float yawRadians = this->viewAngle.y * (3.14159265f / 180.0f);
   float fwdX = std::cos(yawRadians);
@@ -104,4 +104,14 @@ void LocalPlayer::updateVelocity()
 
   this->relVelocity.x = (this->velocity.x * fwdX) + (this->velocity.y * fwdY);
   this->relVelocity.y = (this->velocity.x * rgtX) + (this->velocity.y * rgtY);
+}
+
+void LocalPlayer::updateMovement()
+{
+  auto process = Engine::getProcess();
+
+  uint32_t flags = process->read<uint32_t>(this->pawn + offsets::entities::base::m_fFlags);
+  this->isOnGround = (flags & (1 << 0));
+
+  this->moveType = process->read<uint8_t>(this->pawn + offsets::entities::base::m_MoveType);
 }

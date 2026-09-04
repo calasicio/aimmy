@@ -12,7 +12,7 @@ bool ConVars::init()
   if (!process || tier0.base == 0)
     return false;
 
-  ccvarBase = tier0.base + static_cast<uintptr_t>(offsets::CCVars);
+  ccvarBase = tier0.base + static_cast<uintptr_t>(offsets::game::CCVars);
   if (!ccvarBase)
     return false;
 
