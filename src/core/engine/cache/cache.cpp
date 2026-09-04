@@ -96,13 +96,21 @@ void Cache::debugData()
   std::cout << std::endl;
   std::cout << std::endl;
   std::cout << "CACHE DEBUG:" << std::endl;
-  std::cout << "cache.game |" << std::endl;
-  std::cout << "           |- entityList = " << this->game.entityList << std::endl;
-  std::cout << "           |- listEntry = " << this->game.listEntry << std::endl;
-  std::cout << "           |- windowSize = " << this->game.windowSize << std::endl;
+  std::cout << "cache.game    |" << std::endl;
+  std::cout << "              |- entityList = " << this->game.entityList << std::endl;
+  std::cout << "              |- listEntry = " << this->game.listEntry << std::endl;
+  std::cout << "              |- windowSize = " << this->game.windowSize << std::endl;
   std::cout << std::endl;
   std::cout << "cache.globals |" << std::endl;
   std::cout << "              |- maxClients = " << this->globals.maxClients << std::endl;
   std::cout << "              |- mapName = " << this->globals.mapName << std::endl;
   std::cout << "              |- inMatch = " << this->globals.inMatch << std::endl;
+  std::cout << std::endl;
+  std::cout << "cache.convars |" << std::endl;
+  std::cout << "              |- svAccelerate = " << this->convars.svAccelerate << std::endl;
+  std::cout << "              |- svFriction = " << this->convars.svFriction << std::endl;
+  std::cout << "              |- svStopSpeed = " << this->convars.svStopSpeed << std::endl;
+  std::cout << "              |- svMaxSpeed = " << this->convars.svMaxSpeed << std::endl;
+  std::cout << "              |- sensitivity = " << this->convars.sensitivity << std::endl;
+  std::cout << "              |- teammatesAreEnemies = " << this->convars.teammatesAreEnemies << std::endl;
 }

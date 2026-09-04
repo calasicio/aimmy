@@ -35,16 +35,20 @@ bool ConVars::update()
   if (!initialized)
     return false;
 
+  svAccelerate = getFloat("sv_accelerate", 5.5f);
+  svFriction = getFloat("sv_friction", 5.2f);
+  svStopSpeed = getFloat("sv_stopspeed", 80.0f);
+  svMaxSpeed = getFloat("sv_maxspeed", 320.0f);
+
   sensitivity = getFloat("sensitivity", 1.0f);
 
-  hudScaling = getFloat("hud_scaling", 0.67f);
-  safeZoneX = getFloat("safezonex", 0.67f);
-  safeZoneY = getFloat("safezoney", 0.67f);
-  hudRadarScale = getFloat("cl_hud_radar_scale", 0.67f);
-  radarIconScaleMin = getFloat("cl_radar_icon_scale_min", 0.67f);
+  hudScaling = getFloat("hud_scaling", 0.9f);
+  safeZoneX = getFloat("safezonex", 1.0f);
+  safeZoneY = getFloat("safezoney", 1.0f);
+  hudRadarScale = getFloat("cl_hud_radar_scale", 1.0f);
+  radarIconScaleMin = getFloat("cl_radar_icon_scale_min", 0.6f);
   radarRotate = getBool("cl_radar_rotate", true);
-  radarIconScaleMin = getFloat("cl_radar_icon_scale_min", 0.67f);
-  radarScale = getFloat("cl_radar_scale", 0.067f);
+  radarScale = getFloat("cl_radar_scale", 1.0f);
   teammatesAreEnemies = getBool("mp_teammates_are_enemies", false);
 
   return true;

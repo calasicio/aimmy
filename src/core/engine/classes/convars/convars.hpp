@@ -18,6 +18,11 @@ public:
   int32_t getInt(const char *name, int32_t defaultValue = 0);
   bool getBool(const char *name, bool defaultValue = false);
 
+  float svAccelerate = 5.5;
+  float svFriction = 5.2;
+  float svStopSpeed = 80.0;
+  float svMaxSpeed = 320.0;
+
   float sensitivity = 1.0f;
 
   float hudScaling = 0.0f;
