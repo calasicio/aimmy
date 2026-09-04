@@ -11,13 +11,7 @@
 void AutoStrafe::update(float dt)
 {
   Cache::withLock([this, dt](const Cache &cache)
-                  {
-    if (!keys::isHumanHoldingKey(VK_LMENU))
-    {
-      resetState();
-      return;
-    };
-
+  {
     bool userIsInterfering =
         (keys::isHumanHoldingKey('W')) ||
         (keys::isHumanHoldingKey('A')) ||
@@ -37,7 +31,7 @@ void AutoStrafe::update(float dt)
 
     Vector2 relVelocity = cache.localPlayer.relVelocity;
 
-    if (std::abs(relVelocity.x) > cache.convars.svStopSpeed * 0.6)
+    if (std::abs(relVelocity.x) > cache.convars.svStopSpeed * 0.7)
     {
       if (relVelocity.x > 0.0f && !this->state.S_KEY)
       {
@@ -54,21 +48,17 @@ void AutoStrafe::update(float dt)
     {
       if (this->state.S_KEY && shouldRelease(cache, relVelocity.x))
       {
-        if (!keys::isHumanHoldingKey('S')) {
-          keys::sendKeyUp('S');
-        }
+        keys::sendKeyUp('S');
         this->state.S_KEY = false;
       }
       if (this->state.W_KEY && shouldRelease(cache, relVelocity.x))
       {
-        if (!keys::isHumanHoldingKey('W')) {
-          keys::sendKeyUp('W');
-        }
+        keys::sendKeyUp('W');
         this->state.W_KEY = false;
       }
     }
 
-    if (std::abs(relVelocity.y) > cache.convars.svStopSpeed * 0.6)
+    if (std::abs(relVelocity.y) > cache.convars.svStopSpeed * 0.7)
     {
       if (relVelocity.y > 0.0f && !this->state.A_KEY)
       {
@@ -85,19 +75,16 @@ void AutoStrafe::update(float dt)
     {
       if (this->state.A_KEY && shouldRelease(cache, relVelocity.y))
       {
-        if (!keys::isHumanHoldingKey('A')) {
-          keys::sendKeyUp('A');
-        }
+        keys::sendKeyUp('A');
         this->state.A_KEY = false;
       }
       if (this->state.D_KEY && shouldRelease(cache, relVelocity.y))
       {
-        if (!keys::isHumanHoldingKey('D')) {
-          keys::sendKeyUp('D');
-        }
+        keys::sendKeyUp('D');
         this->state.D_KEY = false;
       }
-    } });
+    }
+  });
 }
 
 bool AutoStrafe::shouldRelease(const Cache &cache, float currentVel)
@@ -130,7 +117,7 @@ bool AutoStrafe::shouldRelease(const Cache &cache, float currentVel)
     }
   }
 
-  return std::abs(currentVel) <= cache.convars.svStopSpeed * 0.6;
+  return std::abs(currentVel) <= cache.convars.svStopSpeed * 0.7;
 }
 
 void AutoStrafe::resetState()
@@ -138,24 +125,28 @@ void AutoStrafe::resetState()
   if (state.W_KEY)
   {
     state.W_KEY = false;
-    keys::sendKeyUp('W');
+    if (!keys::isHumanHoldingKey('W'))
+      keys::sendKeyUp('W');
   }
 
   if (state.A_KEY)
   {
     state.A_KEY = false;
-    keys::sendKeyUp('A');
+    if (!keys::isHumanHoldingKey('A'))
+      keys::sendKeyUp('A');
   }
 
   if (state.S_KEY)
   {
     state.S_KEY = false;
-    keys::sendKeyUp('S');
+    if (!keys::isHumanHoldingKey('S'))
+      keys::sendKeyUp('S');
   }
 
   if (state.D_KEY)
   {
     state.D_KEY = false;
-    keys::sendKeyUp('D');
+    if (!keys::isHumanHoldingKey('D'))
+      keys::sendKeyUp('D');
   }
 }
