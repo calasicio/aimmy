@@ -14,6 +14,8 @@ int main()
   if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
     logger::warning("Could not set application process priority to HIGH");
 
+  keys::HookGuard hookGuard;
+
   if (!Engine::init())
   {
     logger::fatal("Engine failed to initialize, cannot continue execution");
@@ -32,11 +34,7 @@ int main()
     goto exit;
   }
 
-  keys::installHook();
-
   Renderer::thread();
-
-  keys::uninstallHook();
 
   return 0;
 exit:
