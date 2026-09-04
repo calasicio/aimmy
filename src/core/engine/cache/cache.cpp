@@ -1,5 +1,6 @@
 #include "cache.hpp"
 
+#include <iostream>
 #include <mutex>
 
 #include "core/engine/engine.hpp"
@@ -80,5 +81,28 @@ bool Cache::updateImpl()
 
   players = std::move(tempPlayerList);
 
+  debugData();
+
   return true;
+}
+
+void Cache::debugData()
+{
+  if (this->hasAlreadyLoggedData)
+    return;
+
+  this->hasAlreadyLoggedData = true;
+
+  std::cout << std::endl;
+  std::cout << std::endl;
+  std::cout << "CACHE DEBUG:" << std::endl;
+  std::cout << "cache.game |" << std::endl;
+  std::cout << "           |- entityList = " << this->game.entityList << std::endl;
+  std::cout << "           |- listEntry = " << this->game.listEntry << std::endl;
+  std::cout << "           |- windowSize = " << this->game.windowSize << std::endl;
+  std::cout << std::endl;
+  std::cout << "cache.globals |" << std::endl;
+  std::cout << "              |- maxClients = " << this->globals.maxClients << std::endl;
+  std::cout << "              |- mapName = " << this->globals.mapName << std::endl;
+  std::cout << "              |- inMatch = " << this->globals.inMatch << std::endl;
 }

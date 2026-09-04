@@ -49,8 +49,13 @@ public:
   static bool update();
 
 private:
+  bool hasAlreadyLoggedData = false;
+
+private:
   std::mutex mtx;
 
   bool initImpl();
   bool updateImpl();
+
+  void debugData();
 };

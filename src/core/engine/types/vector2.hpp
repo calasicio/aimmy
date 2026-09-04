@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <cmath>
 
 class Vector2
@@ -142,5 +143,11 @@ public:
   static float cross(const Vector2 &a, const Vector2 &b)
   {
     return (a.x * b.y) - (a.y * b.x);
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const Vector2& vec)
+  {
+      os << "{ " << vec.x << ", " << vec.y << " }";
+      return os;
   }
 };
