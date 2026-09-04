@@ -10,6 +10,7 @@ namespace offsets
   inline std::ptrdiff_t dwEntityList = 0x2571220;
   inline std::ptrdiff_t dwViewAngles = 0x23DC2F8;
   inline std::ptrdiff_t dwViewMatrix = 0x23CB830;
+  inline std::ptrdiff_t dwViewRender = 0x23CB898;
 
   inline std::ptrdiff_t CCVars;
 

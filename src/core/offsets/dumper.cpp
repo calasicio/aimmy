@@ -229,15 +229,9 @@ bool Dumper::loadOffsets()
 
   success &= readOffset(
       offsetsData,
-      offsets::dwWindowHeight,
-      "dwWindowHeight",
-      {"engine2.dll", "dwWindowHeight"});
-
-  success &= readOffset(
-      offsetsData,
-      offsets::dwWindowWidth,
-      "dwWindowWidth",
-      {"engine2.dll", "dwWindowWidth"});
+      offsets::dwViewRender,
+      "dwViewRender",
+      {"client.dll", "dwViewRender"});
 
   // C_BasePlayerPawn
   success &= readOffset(
