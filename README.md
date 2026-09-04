@@ -16,8 +16,9 @@ A somewhat stealthy external cheat for Counter-Strike 2
 ## Roadmap
 
 - [X] RCS
+- [X] RCS Humanizer
 - [X] Radar
-- [X] Counter strafe
+- [X] Auto counter strafe
 - [ ] Triggerbot
 - [ ] Aimbot
 - [ ] Aimbot with RCS
