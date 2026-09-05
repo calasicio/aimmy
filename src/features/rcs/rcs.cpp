@@ -29,7 +29,7 @@ void RCS::update(float dt)
     Vector3 aimPunch = cache.localPlayer.aimPunch;
     Vector2 currentAimPunch = {aimPunch.x, aimPunch.y};
 
-    if (cache.localPlayer.shotsFired <= 1)
+    if (cache.localPlayer.shotsFired.current <= 1)
     {
       decayState();
 
@@ -61,7 +61,7 @@ void RCS::update(float dt)
 
     // Pattern recall imperfection (slight rhythmic mis-calibration)
     {
-      float recallError = std::sin(cache.localPlayer.shotsFired * RECALL_FREQ) * RECALL_AMP;
+      float recallError = std::sin(cache.localPlayer.shotsFired.current * RECALL_FREQ) * RECALL_AMP;
       rawDeltaPunch.y += recallError;
     }
 

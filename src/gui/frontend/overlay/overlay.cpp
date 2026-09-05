@@ -35,7 +35,10 @@ void Overlay::renderFollowRecoil(const Cache &cache)
   auto &io = ImGui::GetIO();
   auto *d = ImGui::GetBackgroundDrawList();
 
-  if (cache.localPlayer.shotsFired <= 1)
+  if (cache.localPlayer.health <= 0)
+    return;
+
+  if (cache.localPlayer.shotsFired.current <= 1)
     return;
 
   Vector3 aimPunch = cache.localPlayer.aimPunch;
@@ -141,6 +144,9 @@ void Overlay::renderRadar(const Cache &cache)
       continue;
 
     if (player.teamNum == cache.localPlayer.teamNum && !convars.teammatesAreEnemies)
+      continue;
+
+    if (!player.isShownInRadar)
       continue;
 
     const float dx = player.origin.x - hudSnap.mapTexturePosition.x;

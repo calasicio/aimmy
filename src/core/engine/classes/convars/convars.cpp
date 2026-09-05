@@ -49,7 +49,7 @@ bool ConVars::update()
   radarIconScaleMin = getFloat("cl_radar_icon_scale_min", 0.6f);
   radarRotate = getBool("cl_radar_rotate", true);
   radarScale = getFloat("cl_radar_scale", 1.0f);
-  teammatesAreEnemies = getBool("mp_teammates_are_enemies", false);
+  teammatesAreEnemies = false;
 
   return true;
 }

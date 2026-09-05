@@ -67,16 +67,82 @@ bool Cache::updateImpl()
       if (!controllerAddr)
         continue;
 
-      auto player = Player(i, game.entityList, game.listEntry);
+      auto it = std::find_if(players.begin(), players.end(), [i](const Player &p)
+                             { return p.index == i; });
+
+      Player player = (it != players.end()) ? *it : Player(i, game.entityList, game.listEntry);
 
       if (!player.update())
         continue;
 
       if (player.pawn == localPlayer.pawn)
+      {
+        localPlayer.index = i;
         continue;
+      }
 
       tempPlayerList.push_back(player);
     }
+  }
+
+  for (auto &enemy : tempPlayerList)
+  {
+    if (enemy.teamNum == localPlayer.teamNum && !this->convars.teammatesAreEnemies)
+      continue;
+
+    if (!enemy.isAlive)
+      continue;
+
+    bool isSpotted = false;
+    if (localPlayer.isAlive && localPlayer.index != -1)
+    {
+      isSpotted = (enemy.spottedMask & (1 << localPlayer.index)) != 0;
+    }
+
+    auto now = std::chrono::steady_clock::now();
+    bool isHeard = false;
+
+    if (now - enemy.lastSoundMade.timestamp <= std::chrono::seconds(1))
+    {
+      if (localPlayer.isAlive && enemy.origin.distance(localPlayer.origin) <= enemy.lastSoundMade.radius)
+      {
+        isHeard = true;
+      }
+    }
+
+    if ((!isHeard || !isSpotted) && !this->convars.teammatesAreEnemies)
+    {
+      for (const auto &teammate : tempPlayerList)
+      {
+        if (teammate.teamNum != localPlayer.teamNum || !teammate.isAlive)
+          continue;
+
+        if (!isSpotted && (enemy.spottedMask & (1 << teammate.index)) != 0)
+        {
+          isSpotted = true;
+        }
+
+        if (!isHeard && (now - enemy.lastSoundMade.timestamp <= std::chrono::seconds(1)))
+        {
+          if (enemy.origin.distance(teammate.origin) <= enemy.lastSoundMade.radius)
+          {
+            isHeard = true;
+          }
+        }
+
+        if (isSpotted && isHeard)
+        {
+          break;
+        }
+      }
+    }
+
+    if (isHeard)
+    {
+      enemy.lastHeard = now;
+    }
+
+    enemy.isShownInRadar = (now - enemy.lastHeard <= std::chrono::seconds(5)) || isSpotted;
   }
 
   players = std::move(tempPlayerList);

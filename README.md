@@ -25,7 +25,7 @@ A somewhat stealthy external cheat for Counter-Strike 2
 - [ ] Aimbot with RCS
 - [ ] Aim assist
 - [ ] Aim assist with RCS
-- [ ] Situational Radar
+- [X] Situational Radar
 
 ## License & Copyright
 

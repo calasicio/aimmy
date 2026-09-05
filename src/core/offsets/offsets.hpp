@@ -83,9 +83,20 @@ namespace offsets
       inline std::ptrdiff_t m_vOldOrigin = 0x13B8;
 
       // client.dll -> [client_dll] -> [C_CSPlayerPawn]
-      inline std::ptrdiff_t m_iShotsFired = 0x1C8C;
-      // client.dll -> [client_dll] -> [C_CSPlayerPawn]
       inline std::ptrdiff_t m_pAimPunchServices = 0x14B8;
+      // client.dll -> [client_dll] -> [C_CSPlayerPawn]
+      inline std::ptrdiff_t m_entitySpottedState = 0x1C60;
+      // client.dll -> [client_dll] -> [C_CSPlayerPawn]
+      inline std::ptrdiff_t m_bIsDefusing = 0x1C7A;
+      // client.dll -> [client_dll] -> [C_CSPlayerPawn]
+      inline std::ptrdiff_t m_bIsGrabbingHostage = 0x1C7B;
+      // client.dll -> [client_dll] -> [C_CSPlayerPawn]
+      inline std::ptrdiff_t m_iShotsFired = 0x1C8C;
+      
+      // client.dll -> [client_dll] -> [EntitySpottedState_t]
+      inline std::ptrdiff_t m_bSpotted = 0x8;
+      // client.dll -> [client_dll] -> [EntitySpottedState_t]
+      inline std::ptrdiff_t m_bSpottedByMask = 0x8;
     }
   }
 
