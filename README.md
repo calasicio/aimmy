@@ -19,11 +19,13 @@ A somewhat stealthy external cheat for Counter-Strike 2
 - [X] RCS Humanizer
 - [X] Radar
 - [X] Auto counter strafe
+- [ ] Configuration System
 - [ ] Triggerbot
 - [ ] Aimbot
 - [ ] Aimbot with RCS
 - [ ] Aim assist
 - [ ] Aim assist with RCS
+- [ ] Situational Radar
 
 ## License & Copyright
 
