@@ -5,14 +5,11 @@
 class LocalPlayer : public Player
 {
 public:
-  LocalPlayer() : Player(), shotsFired(0) {}
+  LocalPlayer() : Player() {}
 
   bool update();
 
 public:
-  int shotsFired;
-
-  Vector3 velocity = {0, 0, 0};
   Vector2 relVelocity = {0, 0};
   float maxMovementSpeed = 250;
 

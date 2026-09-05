@@ -66,7 +66,6 @@ bool LocalPlayer::updatePawn()
   Vector3 eyeOffset = process->read<Vector3>(this->pawn + offsets::entities::base::m_vecViewOffset);
   this->cameraPos = this->origin + eyeOffset;
 
-  this->shotsFired = process->read<int>(this->pawn + offsets::player::pawn::m_iShotsFired);
 
   if (!updateAimPunch())
   {
@@ -95,8 +94,6 @@ bool LocalPlayer::updateAimPunch()
 void LocalPlayer::updateVelocity()
 {
   auto process = Engine::getProcess();
-
-  this->velocity = process->read<Vector3>(this->pawn + offsets::entities::base::m_vecAbsVelocity);
 
   float yawRadians = this->viewAngle.y * (3.14159265f / 180.0f);
   float fwdX = std::cos(yawRadians);
